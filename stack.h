@@ -12,19 +12,7 @@ enum elem_type
 	CHAR
 };
 
-enum error_t
-{
-	noerror,
-	BAD_ARG,
-	EMPTY_STACK,
-	UNEXPECTED,
-	FATAL
-
-};
-
 stack_t* stack_construct( size_t elem_s );
-
-enum error_t error = noerror;
 
 /*#define ERROR( error )
 do
@@ -33,19 +21,10 @@ do
 
 } while( 0 )
 */
-#define Do( func )				\
-do						\
-{						\
-	fprintf( log, "doing '"#func"'\n" );	\
-	func;					\
-	if( error == noerror )			\
-		fprintf( log, "ok\n" );		\
-} while( 0 )
-
 #define stack( type, name )				\
 stack_t *name;						\
 							\
-elem_type name##_type = type;				\
+enum elem_type name##_type = type;				\
 size_t elem_s = 0;					\
 if( name##_type == INT )				\
 	elem_s = sizeof( int );				\
@@ -60,10 +39,10 @@ if( name##_type == CHAR )				\
 							\
 name = stack_construct( elem_s );
 
-error_t	push( stack_t* name, const void* value );
+enum error_t	push( stack_t* name, const void* value );
 void* 	top( stack_t* name );
 void*	pop( stack_t* name );
-error_t	resize( stack_t* name, size_t capacity_new );
+enum error_t	resize( stack_t* name, size_t capacity_new );
 size_t 	size( stack_t* name );
 size_t 	capacity( stack_t* name );
 int	empty( stack_t* name );

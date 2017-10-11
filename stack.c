@@ -17,7 +17,7 @@ struct stack_t
 	void* data_;
 	size_t size_;
 	size_t capacity_;
-	fatal_error_t error_;
+	enum fatal_error_t error_;
 };
 static const int POISON = -787787;
 static const int capacity_default = 64;
@@ -35,17 +35,17 @@ stack_t *stack_construct( size_t elem_s )
 	return name;
 }
 
-error_t push( stack_t* name, const void* value )
+enum error_t push( stack_t* name, const void* value )
 {
 	if( name == NULL )
 	{
-		fprintf( log, "ERROR: stack_t* = %p\n", name );
+		print_log( "ERROR: stack_t* = %p\n", name );
 		error = BAD_ARG;
 		return BAD_ARG;
 	}
 	if( value == NULL )
 	{
-		fprintf( log, "ERROR: const void* = %p\n", value );
+		print_log( "ERROR: const void* = %p\n", value );
 		error = BAD_ARG;
 		return BAD_ARG;
 	}
@@ -59,21 +59,23 @@ void* top( stack_t* name )
 {
 	if( name == NULL )
 	{
-		fprintf( log, "ERROR: stack_t* = %p\n", name );
+		print_log( "ERROR: stack_t* = %p\n", name );
 		error = BAD_ARG;
 		return NULL;
 	}
 	if( (name -> size_) == 0 )
 	{
 		
-		fprintf( log, "ERROR: TRYING TO TOP FROM EMPTY STACK\n" );
+		print_log("aa\n");
+		//fprintf( log, "ERROR: TRYING TO TOP FROM EMPTY STACK\n" );
 		error = EMPTY_STACK;
 		return NULL;
 	}
 	void* dest = ( void* ) calloc ( 1, name -> elem_size_ );
 	if( dest == NULL )
 	{
-		fprintf( log, "ERROR: UNEXPECTED ERROR\n" );
+		//fprintf( log, "ERROR: UNEXPECTED ERROR\n" );
+		print_log("aa\n");
 		error = UNEXPECTED;
 		return NULL;
 	}
@@ -85,14 +87,14 @@ void* pop( stack_t* name )
 {
 	if( name == NULL )
 	{
-		fprintf( log, "ERROR: stack_t* = %p\n", name );
+		//fprintf( log, "ERROR: stack_t* = %p\n", name );
 		error = BAD_ARG;
 		return NULL;
 	}
 	if( (name -> size_) == 0 )
 	{
 		
-		fprintf( log, "ERROR: TRYING TO POP FROM EMPTY STACK\n" );
+		//fprintf( log, "ERROR: TRYING TO POP FROM EMPTY STACK\n" );
 		error = EMPTY_STACK;
 		return NULL;
 	}
@@ -100,23 +102,23 @@ void* pop( stack_t* name )
 	void* dest = ( void* ) calloc ( 1, name -> elem_size_);
 	if( dest == NULL )
 	{
-		fprintf( log, "ERROR: UNEXPECTED ERROR\n" );
+		//fprintf( log, "ERROR: UNEXPECTED ERROR\n" );
 		error = UNEXPECTED;
 		return NULL;
 	}
 	memcpy( dest, ( name -> data_ ) + ( --(name -> size_) ) * ( name -> elem_size_ ), name -> elem_size_ );
 	return dest;
 }
-error_t resize( stack_t* name, size_t capacity_new )
+enum error_t resize( stack_t* name, size_t capacity_new )
 {
 	if( (name -> error_) == RESIZE_STACK )
 	{
-		fprintf( log, "FATAL ERROR: CANNOT RESIZE STACK\n" );
+		//fprintf( log, "FATAL ERROR: CANNOT RESIZE STACK\n" );
 		return FATAL;
 	}
 	if( name == NULL )
 	{
-		fprintf( log, "ERROR: stack_t* = %p\n", name );
+		//fprintf( log, "ERROR: stack_t* = %p\n", name );
 		error = BAD_ARG;
 		return BAD_ARG;
 	}
@@ -126,10 +128,10 @@ error_t resize( stack_t* name, size_t capacity_new )
 		if( capacity_new == (name -> capacity_) )
 		{
 			(name -> error_) = RESIZE_STACK;
-			fprintf( log, "ERROR: CANNOT RESIZE\n");
+		//	fprintf( log, "ERROR: CANNOT RESIZE\n");
 			return FATAL;
 		}
-	fprintf( log, "ERROR: CANNOT RESIZE TO capacity_new = %zd\n", capacity_new );
+	//fprintf( log, "ERROR: CANNOT RESIZE TO capacity_new = %zd\n", capacity_new );
 	Do( resize( name, capacity_new - 1 ) );
 	}	
 	if( data_tmp != NULL )
@@ -144,7 +146,7 @@ size_t size( stack_t* name )
 {
 	if( name == NULL )
 	{
-		fprintf( log, "ERROR: stack_t* = %p\n", name );
+	//	fprintf( log, "ERROR: stack_t* = %p\n", name );
 		return POISON;
 	}
 	return name -> size_;
@@ -153,7 +155,7 @@ size_t 	capacity( stack_t* name )
 {
 	if( name == NULL )
 	{
-		fprintf( log, "ERROR: stack_t* = %p\n", name );
+		//fprintf( log, "ERROR: stack_t* = %p\n", name );
 		return POISON;
 	}
 	return name -> capacity_;
@@ -162,7 +164,7 @@ int	empty( stack_t* name )
 {
 	if( name == NULL )
 	{
-		fprintf( log, "ERROR: stack_t* = %p\n", name );
+		//fprintf( log, "ERROR: stack_t* = %p\n", name );
 		return POISON;
 	}
 	return ( name -> size_ ) > 0;

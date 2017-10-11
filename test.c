@@ -1,16 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "log.h"
 #include "stack.h"
+#include "log.h"
+
 int main()
 {
+	log_constr();
 	stack( INT, s1 );
+	int* dest = 0;
+	Do( dest = ( int* )top(s1) );
 	for( int i = 1; i <= 4; i++ )
 	{
 		Do( push( s1, &i ) );
 		
 	}
-	int* dest = 0;
 	for( int i = 0; i < 4; i++ )
 	{
 		Do( dest = ( int* )top( s1 ) );
@@ -19,6 +22,6 @@ int main()
 		printf( "%d ", *dest );
 	}
 	printf( "\n" );
-	fclose( log );
+	log_destr();
 	return 0;
 }
