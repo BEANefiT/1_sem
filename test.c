@@ -6,7 +6,7 @@
 int main()
 {
 	log_constr();
-	stack( INT, s1 );
+	stack( int, s1 );
 	int* dest = 0;
 	Do( dest = ( int* )top(s1) );
 	for( int i = 1; i <= 4; i++ )

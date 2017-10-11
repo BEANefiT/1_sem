@@ -5,23 +5,28 @@
 
 static FILE *log;
 
-void log_constr()
+int log_constr()
 {
 	log = fopen( "log.txt", "w" );
 	if (log == NULL) {
+		return NO_LOG_FILE;
 	}
+	return SUCCESS;
 }
 
-void log_destr()
+int log_destr()
 {
 	fclose (log);
+	return SUCCESS;
 }
 
-void print_log( char *msg, ... )
+int print_log( char *msg, ... )
 {
+	if( msg == NULL )
+		return CANNOT_PRINT;
 	va_list args;
 	va_start( args, msg );
-	fprintf( log, va_arg( msg, args ) );
+	vfprintf( log, msg, args );
 	va_end( args );
 }
 
