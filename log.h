@@ -57,7 +57,18 @@ enum log_err_t
 
 static enum error_t error = noerror;
 
+/**
+* @brief 
+*
+* @return 
+*/
 int log_constr();
+
+/**
+* @brief 
+*
+* @return 
+*/
 int log_destr();
 
 #ifdef __GNUC__
