@@ -1,0 +1,27 @@
+doing 'top(s1, dest)'
+ERROR: TRYING TO TOP FROM EMPTY STACK
+ok
+doing 'push( s1, &i )'
+ok
+doing 'push( s1, &i )'
+ok
+doing 'push( s1, &i )'
+ok
+doing 'push( s1, &i )'
+ok
+doing 'top( s1, dest )'
+ok
+doing 'pop( s1, dest )'
+ok
+doing 'top( s1, dest )'
+ok
+doing 'pop( s1, dest )'
+ok
+doing 'top( s1, dest )'
+ok
+doing 'pop( s1, dest )'
+ok
+doing 'top( s1, dest )'
+ok
+doing 'pop( s1, dest )'
+ok
