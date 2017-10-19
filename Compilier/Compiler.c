@@ -4,14 +4,16 @@
 
 char *get_src( char *src_file_name, size_t *src_sz );
 size_t srcSize( FILE *src );
-void *compile( char* src, size_t src_sz );
+void *compile( char* src, size_t src_sz, size_t *exe_sz );
+int makecode( void *exe, size_t exe_sz );
 
 int main( int argc, char *argv[] )
 {
 	size_t src_sz = 0;
 	char *src = get_src( argv[ 1 ], &src_sz );
-	void *exe = compile( src, src_sz );
-	
+	size_t exe_sz = 0;
+	void *exe = compile( src, src_sz, &exe_sz );
+	makecode( exe, exe_sz );
 	return 0;
 }
 
@@ -33,7 +35,7 @@ size_t srcSize( FILE *src )
 	return src_sz;
 }
 
-void *compile( char *src, size_t src_sz )
+void *compile( char *src, size_t src_sz, size_t *exe_sz )
 {
 	#define DEF_CMD( name, num ) const int CMD_##name = num;
 	#include "commands.h"
@@ -51,34 +53,42 @@ void *compile( char *src, size_t src_sz )
 
 		if( strcmp( str, "push" ) == 0 )
 		{
-			memcpy( exe_cur, &CMD_push, sizeof( int ) );
+			memcpy( exe_cur, &CMD_PUSH, sizeof( int ) );
 			exe_cur += sizeof( int );
 			double value;
-			sscanf( src + src_cur, "%d%lg", value, &src_cur_delta );
+			sscanf( src + src_cur, "%lg%n", &value, &src_cur_delta );
 			src_cur += src_cur_delta;
 			memcpy( exe_cur, &value, sizeof( double ) );
 			exe_cur += sizeof( double );
 		}
 		if( strcmp( str, "add" ) == 0 )
 		{
-			memcpy( exe_cur, &CMD_add, sizeof( int ) );
+			memcpy( exe_cur, &CMD_ADD, sizeof( int ) );
 			exe_cur += sizeof( int );
 		}
 		if( strcmp( str, "mul" ) == 0 )
 		{
-			memcpy( exe_cur, &CMD_mul, sizeof( int ) );
+			memcpy( exe_cur, &CMD_MUL, sizeof( int ) );
 			exe_cur += sizeof( int );
 		}
 		if( strcmp( str, "div" ) == 0 )
 		{
-			memcpy( exe_cur, &CMD_div, sizeof( int ) );
+			memcpy( exe_cur, &CMD_DIV, sizeof( int ) );
 			exe_cur += sizeof( int );
 		}
 		if( strcmp( str, "sub" ) == 0 )
 		{
-			memcpy( exe_cur, &CMD_sub, sizeof( int ) );
+			memcpy( exe_cur, &CMD_SUB, sizeof( int ) );
 			exe_cur += sizeof( int );
 		}
 	}
+	*exe_sz = ( size_t ) exe_cur - ( size_t ) exe;
 	return exe;
+}
+
+int makecode( void *exe, size_t exe_sz )
+{
+	FILE *exe_file = fopen( "./../CPU/exe", "w" );
+	fwrite( exe, exe_sz, sizeof( char ), exe_file );
+	fclose( exe_file );
 }
