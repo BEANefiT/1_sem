@@ -65,7 +65,8 @@ void *compile( char *src, size_t src_sz )
 		}
 		if( strcmp( str, "add" ) == 0 )
 		{
-			memcpy( exe_cur, &CMD_add, sizeof( int ) );
+			int command_n = CMD_add;
+			memcpy( exe_cur, &command_n, sizeof( int ) );
 			exe_cur += sizeof( int );
 		}
 		if( strcmp( str, "mul" ) == 0 )
