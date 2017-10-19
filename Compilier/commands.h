@@ -1,0 +1,5 @@
+DEF_CMD( push, 1 )
+DEF_CMD( add, 2 )
+DEF_CMD( mul, 3 )
+DEF_CMD( div, 4 )
+DEF_CMD( sub, 5 )
