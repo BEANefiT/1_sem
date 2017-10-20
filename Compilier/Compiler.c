@@ -45,7 +45,10 @@ void *compile( char *src, size_t src_sz, size_t *exe_sz )
 	void *exe_cur = exe;	
 	int src_cur = 0;
 	int src_cur_delta = 0;
-	while( src_cur < src_sz )
+	#define __Compile__
+	#include "commands.h"
+
+	while( src_cur < src_sz )							
 	{
 		char *str = ( char * )calloc( 5, sizeof( char ) );
 		sscanf( src + src_cur, "%s%n", str, &src_cur_delta );
@@ -55,11 +58,7 @@ void *compile( char *src, size_t src_sz, size_t *exe_sz )
 		{
 			memcpy( exe_cur, &CMD_PUSH, sizeof( int ) );
 			exe_cur += sizeof( int );
-			double value;
-			sscanf( src + src_cur, "%lg%n", &value, &src_cur_delta );
-			src_cur += src_cur_delta;
-			memcpy( exe_cur, &value, sizeof( double ) );
-			exe_cur += sizeof( double );
+			CMD_PUSH_code;
 		}
 		if( strcmp( str, "add" ) == 0 )
 		{
