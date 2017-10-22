@@ -87,8 +87,81 @@ int run( double *ax, double *bx, double *cx, double *dx )
 				Do( push( values, &result ) );
 				break;
 			}
-		}
+			case OUT:
+			{
+				double value = 0;
+				Do( top( values, &value ) );
+				printf( "%lg\n", value );
+				break;
+			}
+			case POPR:
+			{
+				double value = 0;
+				Do( pop( values, &value ) );
+				int reg_num = 0;
+				memcpy( &reg_num, exe_cur, sizeof( int ) );
+				exe_cur += sizeof( int );
+				
+				switch( reg_num )
+				{
+					case 1:
+					{
+						*ax = value;
+						break;
+					}
+					case 2:
+					{
+						*bx = value;
+						break;
+					}
+					case 3:
+					{
+						*cx = value;
+						break;
+					}
+					case 4:
+					{
+						*dx = value;
+						break;
+					}
+				}
 
+				break;
+
+			}
+			case PUSHR:
+			{
+				int reg_num = 0;
+				memcpy( &reg_num, exe_cur, sizeof( int ) );
+				exe_cur += sizeof( int );
+
+				switch( reg_num )
+				{
+					case 1:
+					{
+						Do( push( values, ax ) );
+						break;
+					}
+					case 2:
+					{
+						Do( push( values, bx ) );
+						break;
+					}
+					case 3:
+					{
+						Do( push( values, cx ) );
+						break;
+					}
+					case 4:
+					{
+						Do( push( values, dx ) );
+						break;
+					}
+				}
+
+				break;
+			}
+		}
 	}
 
 }

@@ -56,9 +56,27 @@ void *compile( char *src, size_t src_sz, size_t *exe_sz )
 
 		if( strcmp( str, "push" ) == 0 )
 		{
-			memcpy( exe_cur, &CMD_PUSH, sizeof( int ) );
+			char *tmp = ( char * )calloc( 8, sizeof( char ) );
+			sscanf( src + src_cur, "%s", tmp );
+			if( strcmp( tmp, "ax" ) == 0 || strcmp( tmp, "bx" ) == 0 || strcmp( tmp, "cx" ) == 0 || strcmp( tmp, "dx" ) == 0 )
+			{
+				memcpy( exe_cur, &CMD_PUSHR, sizeof( int ) );
+				exe_cur += sizeof( int );
+				REG_READ_code;
+			}
+			else
+			{
+				memcpy( exe_cur, &CMD_PUSH, sizeof( int ) );
+				exe_cur += sizeof( int );
+				CMD_PUSH_code;
+			}
+			free( tmp );
+		}
+		if( strcmp( str, "pop" ) == 0 )
+		{
+			memcpy( exe_cur, &CMD_POPR, sizeof( int ) );
 			exe_cur += sizeof( int );
-			CMD_PUSH_code;
+			REG_READ_code;
 		}
 		if( strcmp( str, "add" ) == 0 )
 		{
@@ -80,6 +98,12 @@ void *compile( char *src, size_t src_sz, size_t *exe_sz )
 			memcpy( exe_cur, &CMD_SUB, sizeof( int ) );
 			exe_cur += sizeof( int );
 		}
+		if( strcmp( str, "out" ) == 0 )
+		{
+			memcpy( exe_cur, &CMD_OUT, sizeof( int ) );
+			exe_cur += sizeof( int );
+		}
+		free( str );
 	}
 	*exe_sz = ( size_t ) exe_cur - ( size_t ) exe;
 	return exe;
