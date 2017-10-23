@@ -3,27 +3,31 @@
 #include <stdlib.h>
 #include "./../stack_t/stack.h"
 #include "./../log/log.h"
-
-int run( double *ax, double *bx, double *cx, double *dx );
-void *getcode( size_t *exe_sz );
-size_t fSize( FILE *file_name );
+#include "CPU.h"
 
 int main()
 {
 	log_constr();
-	double ax = 0, bx = 0, cx = 0, dx = 0;
-	run( &ax, &bx, &cx, &dx );
+	struct CPU_structure CPU;
+	CPU_construct( &CPU );
+	CPU.exe = getcode( &(( CPU ).exe_sz) );
+	printf( "sizeofexe = %zd\n", (CPU).exe_sz );
+	run( &CPU );
 	log_destr();
 	return 0;
 }
 
-int run( double *ax, double *bx, double *cx, double *dx )
+int CPU_construct( struct CPU_structure *CPU )
 {
-
 	stack( double, values );
-	size_t exe_sz = 0;
-	void *exe = getcode( &exe_sz );
-	void *exe_cur = exe;
+	( CPU ) -> values = values;
+	( CPU ) -> exe_sz = 0;
+	( CPU ) -> exe = getcode( &(( CPU ) -> exe_sz) );
+	( CPU ) -> exe_cur = ( CPU ) -> exe;
+}
+
+int run( struct CPU_structure *CPU )
+{
 	#define DEF_CMD( name, num ) name = num,
 	enum CMD
 	{
@@ -31,97 +35,97 @@ int run( double *ax, double *bx, double *cx, double *dx )
 		end = 0
 	};
 	#undef DEF_CMD
-	while( exe_cur < exe + exe_sz )
+	while( ( CPU ) -> exe_cur < ( CPU ) -> exe + ( CPU ) -> exe_sz )
 	{
 
 		int cmd = 0;
-		memcpy( &cmd, exe_cur, sizeof( int ) );
-		exe_cur += sizeof( int );
+		memcpy( &cmd, ( CPU ) -> exe_cur, sizeof( int ) );
+		( CPU ) -> exe_cur += sizeof( int );
 		switch( cmd )
 		{
 			case PUSH:
 			{
 				double value = 0;
-				memcpy( &value, exe_cur, sizeof( double ) );
-				exe_cur += sizeof( double );
-				Do( push( values, &value ) );
+				memcpy( &value, ( CPU ) -> exe_cur, sizeof( double ) );
+				( CPU ) -> exe_cur += sizeof( double );
+				Do( push( ( CPU ) -> values, &value ) );
 				break;
 			}
 
 			case ADD:
 			{
 				double value1 = 0, value2 = 0;
-				Do( pop( values, &value1 ) );
-				Do( pop( values, &value2 ) );
+				Do( pop( ( CPU ) -> values, &value1 ) );
+				Do( pop( ( CPU ) -> values, &value2 ) );
 				double result = value1 + value2;
-				Do( push( values, &result ) );
+				Do( push( ( CPU ) -> values, &result ) );
 				break;
 			}
 
 			case MUL:
 			{
 				double value1 = 0, value2 = 0;
-				Do( pop( values, &value1 ) );
-				Do( pop( values, &value2 ) );
+				Do( pop( ( CPU ) -> values, &value1 ) );
+				Do( pop( ( CPU ) -> values, &value2 ) );
 				double result = value1 * value2;
-				Do( push( values, &result ) );
+				Do( push( ( CPU ) -> values, &result ) );
 				break;
 			}
 
 			case DIV:
 			{
 				double value1 = 0, value2 = 0;
-				Do( pop( values, &value2 ) );
-				Do( pop( values, &value1 ) );
+				Do( pop( ( CPU ) -> values, &value2 ) );
+				Do( pop( ( CPU ) -> values, &value1 ) );
 				double result = value1 / value2;
-				Do( push( values, &result ) );
+				Do( push( ( CPU ) -> values, &result ) );
 				break;
 			}
 			
 			case SUB:
 			{
 				double value1 = 0, value2 = 0;
-				Do( pop( values, &value2 ) );
-				Do( pop( values, &value1 ) );
+				Do( pop( ( CPU ) -> values, &value2 ) );
+				Do( pop( ( CPU ) -> values, &value1 ) );
 				double result = value1 - value2;
-				Do( push( values, &result ) );
+				Do( push( ( CPU ) -> values, &result ) );
 				break;
 			}
 			case OUT:
 			{
 				double value = 0;
-				Do( top( values, &value ) );
+				Do( top( ( CPU ) -> values, &value ) );
 				printf( "%lg\n", value );
 				break;
 			}
 			case POPR:
 			{
 				double value = 0;
-				Do( pop( values, &value ) );
+				Do( pop( ( CPU ) -> values, &value ) );
 				int reg_num = 0;
-				memcpy( &reg_num, exe_cur, sizeof( int ) );
-				exe_cur += sizeof( int );
+				memcpy( &reg_num, ( CPU ) -> exe_cur, sizeof( int ) );
+				( CPU ) -> exe_cur += sizeof( int );
 				
 				switch( reg_num )
 				{
 					case 1:
 					{
-						*ax = value;
+						( CPU ) -> ax = value;
 						break;
 					}
 					case 2:
 					{
-						*bx = value;
+						( CPU ) -> bx = value;
 						break;
 					}
 					case 3:
 					{
-						*cx = value;
+						( CPU ) -> cx = value;
 						break;
 					}
 					case 4:
 					{
-						*dx = value;
+						( CPU ) -> dx = value;
 						break;
 					}
 				}
@@ -132,33 +136,41 @@ int run( double *ax, double *bx, double *cx, double *dx )
 			case PUSHR:
 			{
 				int reg_num = 0;
-				memcpy( &reg_num, exe_cur, sizeof( int ) );
-				exe_cur += sizeof( int );
+				memcpy( &reg_num, ( CPU ) -> exe_cur, sizeof( int ) );
+				( CPU ) -> exe_cur += sizeof( int );
 
 				switch( reg_num )
 				{
 					case 1:
 					{
-						Do( push( values, ax ) );
+						Do( push( ( CPU ) -> values, &(( CPU ) -> ax )) );
 						break;
 					}
 					case 2:
 					{
-						Do( push( values, bx ) );
+						Do( push( ( CPU ) -> values, &(( CPU ) -> bx )) );
 						break;
 					}
 					case 3:
 					{
-						Do( push( values, cx ) );
+						Do( push( ( CPU ) -> values, &(( CPU ) -> cx )) );
 						break;
 					}
 					case 4:
 					{
-						Do( push( values, dx ) );
+						Do( push( ( CPU ) -> values, &(( CPU ) -> dx )) );
 						break;
 					}
 				}
 
+				break;
+			}
+			case JMP:
+			{
+				void *tmp = calloc( 1, sizeof( int ) ); 
+				memcpy( tmp, ( CPU ) -> exe_cur, sizeof( void * ) );
+				( CPU ) -> exe_cur =  ( void * )( ( int )(( CPU ) -> exe) + ( int )tmp );
+				free( tmp );
 				break;
 			}
 		}

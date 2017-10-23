@@ -7,9 +7,11 @@ DEF_CMD( SUB,   5 )
 DEF_CMD( OUT,   6 )
 DEF_CMD( POPR,  7 )
 DEF_CMD( PUSHR, 8 )
+DEF_CMD( LABEL, 9 )
+DEF_CMD( JMP, 	10 )
 #endif
 
-#ifdef __Compile__
+#ifdef _Compile_
 
 #define CMD_PUSH_code							\
 do									\
@@ -40,6 +42,26 @@ do									\
 									\
 	memcpy( exe_cur, &reg_num, sizeof( int ) );			\
 	exe_cur += sizeof( int );					\
+} while( 0 )
+
+#define CMD_LABEL_code							\
+do									\
+{									\
+	int label = -1;							\
+	sscanf( src + src_cur, "%d%n", &label, &src_cur_delta );	\
+	src_cur += src_cur_delta;					\
+	labels[ label ] = exe_cur - exe;				\
+	printf( "labels[ %d ] = %p - %p = %p\n", label, exe_cur, exe, exe_cur - exe );		\
+} while( 0 )
+
+
+#define CMD_JMP_code							\
+do									\
+{									\
+	int label = -1;							\
+	sscanf( src + src_cur, "%d", &label );				\
+	memcpy( exe_cur, labels + label, sizeof( void * ) );		\
+	exe_cur += sizeof( void * );					\
 } while( 0 )
 
 #endif /*__Compile__*/
