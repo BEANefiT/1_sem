@@ -1,10 +1,30 @@
-doing 'push( values, &value )'
+doing 'push( ( CPU ) -> values, &value )'
 ok
-doing 'push( values, &value )'
+doing 'top( ( CPU ) -> values, &value )'
 ok
-doing 'pop( values, &value1 )'
+doing 'push( ( CPU ) -> values, &value )'
 ok
-doing 'pop( values, &value2 )'
+doing 'top( ( CPU ) -> values, &value )'
 ok
-doing 'push( values, &result )'
+doing 'push( ( CPU ) -> values, &value )'
+ok
+doing 'top( ( CPU ) -> values, &value )'
+ok
+doing 'pop( ( CPU ) -> values, &value1 )'
+ok
+doing 'pop( ( CPU ) -> values, &value2 )'
+ok
+doing 'push( ( CPU ) -> values, &result )'
+ok
+doing 'top( ( CPU ) -> values, &value )'
+ok
+doing 'pop( ( CPU ) -> values, &value )'
+ok
+doing 'top( ( CPU ) -> values, &value )'
+ok
+doing 'push( ( CPU ) -> values, &(( CPU ) -> ax ))'
+ok
+doing 'top( ( CPU ) -> values, &value )'
+ok
+doing 'top( ( CPU ) -> values, &value )'
 ok

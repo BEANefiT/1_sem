@@ -1,3 +1,16 @@
 push 1
+out
 push 2
+out
+push 3
+out
 add
+out
+pop ax
+out
+push ax
+out
+jmp 1
+div
+label 1
+out
