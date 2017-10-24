@@ -10,8 +10,6 @@ int main()
 	log_constr();
 	struct CPU_structure CPU;
 	CPU_construct( &CPU );
-	CPU.exe = getcode( &(( CPU ).exe_sz) );
-	printf( "sizeofexe = %zd\n", (CPU).exe_sz );
 	run( &CPU );
 	log_destr();
 	return 0;
@@ -22,8 +20,7 @@ int CPU_construct( struct CPU_structure *CPU )
 	stack( double, values );
 	( CPU ) -> values = values;
 	( CPU ) -> exe_sz = 0;
-	( CPU ) -> exe = getcode( &(( CPU ) -> exe_sz) );
-	( CPU ) -> exe_cur = ( CPU ) -> exe;
+	( CPU ) -> exe = getcode( CPU );
 }
 
 int run( struct CPU_structure *CPU )
@@ -37,10 +34,9 @@ int run( struct CPU_structure *CPU )
 	#undef DEF_CMD
 	while( ( CPU ) -> exe_cur < ( CPU ) -> exe + ( CPU ) -> exe_sz )
 	{
-
 		int cmd = 0;
 		memcpy( &cmd, ( CPU ) -> exe_cur, sizeof( int ) );
-		( CPU ) -> exe_cur += sizeof( int );
+		( ( CPU ) -> exe_cur ) += sizeof( int );
 		switch( cmd )
 		{
 			case PUSH:
@@ -167,10 +163,9 @@ int run( struct CPU_structure *CPU )
 			}
 			case JMP:
 			{
-				void *tmp = calloc( 1, sizeof( int ) ); 
-				memcpy( tmp, ( CPU ) -> exe_cur, sizeof( void * ) );
-				( CPU ) -> exe_cur =  ( void * )( ( int )(( CPU ) -> exe) + ( int )tmp );
-				free( tmp );
+				size_t tmp = 0;
+				memcpy( &tmp, ( CPU ) -> exe_cur, sizeof( size_t ) );
+				( CPU ) -> exe_cur =  ( CPU ) -> exe + tmp ;
 				break;
 			}
 		}
@@ -178,13 +173,14 @@ int run( struct CPU_structure *CPU )
 
 }
 
-void *getcode( size_t *exe_sz )
+void *getcode( struct CPU_structure *CPU )
 {
 	FILE *exe_file = fopen( "exe", "r" );
-	*exe_sz = fSize( exe_file );
-	void *exe = calloc( *exe_sz, sizeof( char ) );
-	fread( exe, sizeof( char ), *exe_sz, exe_file );
+	( CPU ) -> exe_sz = fSize( exe_file );
+	void *exe = calloc( ( CPU ) -> exe_sz, sizeof( char ) );
+	fread( exe, sizeof( char ), ( CPU ) -> exe_sz, exe_file );
 	fclose( exe_file );
+	( CPU ) -> exe_cur = exe;
 	return exe;
 }
 

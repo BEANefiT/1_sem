@@ -9,7 +9,7 @@ enum Compilier_modes
 };
 char *get_src( char *src_file_name, size_t *src_sz );
 size_t srcSize( FILE *src );
-void *compile( char* src, size_t src_sz, size_t *exe_sz, enum Compilier_modes mode );
+int compile( char* src, size_t src_sz, size_t *exe_sz, enum Compilier_modes mode, size_t *labels, void *exe );
 int makecode( void *exe, size_t exe_sz );
 
 int main( int argc, char *argv[] )
@@ -17,10 +17,14 @@ int main( int argc, char *argv[] )
 	size_t src_sz = 0;
 	char *src = get_src( argv[ 1 ], &src_sz );
 	size_t exe_sz = 0;
+	#define label_amount 20
+	size_t labels[ label_amount ] = {};
+	#undef label_amount
+	void *exe = calloc( sizeof( double ), src_sz );
 	enum Compilier_modes mode = first;
-	//compile( src, src_sz, &exe_sz, mode );
+	compile( src, src_sz, &exe_sz, mode, labels, exe );
 	mode = second;
-	void *exe = compile( src, src_sz, &exe_sz, mode );
+	compile( src, src_sz, &exe_sz, mode, labels, exe );
 	makecode( exe, exe_sz );
 	return 0;
 }
@@ -43,27 +47,21 @@ size_t srcSize( FILE *src )
 	return src_sz;
 }
 
-void *compile( char *src, size_t src_sz, size_t *exe_sz, enum Compilier_modes mode )
+int compile( char *src, size_t src_sz, size_t *exe_sz, enum Compilier_modes mode, size_t *labels, void *exe )
 {
 	#define DEF_CMD( name, num ) const int CMD_##name = num;
 	#include "commands.h"
 	#undef DEF_CMD
 
-	void *exe = calloc( sizeof( double ), src_sz );
-	void *exe_cur = exe;	
+	void *exe_cur = exe;
 	int src_cur = 0;
 	int src_cur_delta = 0;
-
-	#define label_amount 20
-	void *labels[ label_amount ] = {0};
-	#undef label_amount
 
 	#define _Compile_
 	#include "commands.h"
 
 	if( mode == first )
 	{
-		printf( "began 1st Compile\n" );
 		while( src_cur < src_sz )
 		{
 			char *str = ( char * )calloc( 5, sizeof( char ) );
@@ -83,7 +81,7 @@ void *compile( char *src, size_t src_sz, size_t *exe_sz, enum Compilier_modes mo
 				}
 				else
 				{
-					exe_cur += sizeof( int ) + sizeof( double );
+					exe_cur += ( sizeof( int ) + sizeof( double ) );
 				}
 				free( tmp );
 			}
@@ -113,19 +111,17 @@ void *compile( char *src, size_t src_sz, size_t *exe_sz, enum Compilier_modes mo
 			}
 			if( strcmp( str, "jmp" ) == 0 )
 			{
-				exe_cur += sizeof( int ) + sizeof( void * );
+				exe_cur += sizeof( int ) + sizeof( size_t );
 			}
 
 			free( str );
 		}
 
-		free( exe );
-		return NULL;
+		return 0;
 	}
 	
 	if( mode == second )
 	{
-printf( "\nbegan 2nd Compile\n" );
 		while( src_cur < src_sz )							
 		{
 			char *str = ( char * )calloc( 5, sizeof( char ) );
@@ -178,29 +174,26 @@ printf( "\nbegan 2nd Compile\n" );
 			}
 			if( strcmp( str, "out" ) == 0 )
 			{
-				printf( "out\n" );
 				memcpy( exe_cur, &CMD_OUT, sizeof( int ) );
 				exe_cur += sizeof( int );
 			}
 			if( strcmp( str, "jmp" ) == 0 )
 			{
-				printf( "jmp\n" );
 				memcpy( exe_cur, &CMD_JMP, sizeof( int ) );
 				exe_cur += sizeof( int );
 				CMD_JMP_code;
 			}
+				
 			free( str );
 		}
 		*exe_sz = ( size_t ) exe_cur - ( size_t ) exe;
-		return exe;
+		return 0;
 	}
 }
 
 int makecode( void *exe, size_t exe_sz )
 {
 	FILE *exe_file = fopen( "./../CPU/exe", "w" );
-	printf( "1 " );
 	fwrite( exe, exe_sz, sizeof( char ), exe_file );
-	printf( "2\n" );
 	fclose( exe_file );
 }

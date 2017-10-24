@@ -12,5 +12,5 @@ struct CPU_structure
 
 int CPU_construct( struct CPU_structure *CPU );
 int run( struct CPU_structure *CPU );
-void *getcode( size_t *exe_sz );
+void *getcode( struct CPU_structure *CPU );
 size_t fSize( FILE *file_name );

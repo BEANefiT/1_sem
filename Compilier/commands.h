@@ -50,8 +50,7 @@ do									\
 	int label = -1;							\
 	sscanf( src + src_cur, "%d%n", &label, &src_cur_delta );	\
 	src_cur += src_cur_delta;					\
-	labels[ label ] = exe_cur - exe;				\
-	printf( "labels[ %d ] = %p - %p = %p\n", label, exe_cur, exe, exe_cur - exe );		\
+	labels[ label ] = ( size_t )exe_cur - ( size_t )exe;		\
 } while( 0 )
 
 
@@ -59,9 +58,10 @@ do									\
 do									\
 {									\
 	int label = -1;							\
-	sscanf( src + src_cur, "%d", &label );				\
-	memcpy( exe_cur, labels + label, sizeof( void * ) );		\
-	exe_cur += sizeof( void * );					\
+	sscanf( src + src_cur, "%d%n", &label, &src_cur_delta );	\
+	src_cur += src_cur_delta;					\
+	memcpy( exe_cur, labels + label, sizeof( size_t ) );		\
+	exe_cur += sizeof( size_t );					\
 } while( 0 )
 
 #endif /*__Compile__*/
