@@ -15,6 +15,8 @@ DEF_CMD( JA,	13 )
 DEF_CMD( JAE,	14 )
 DEF_CMD( JB,	15 )
 DEF_CMD( JBE,	16 )
+DEF_CMD( CALL,	17 )
+DEF_CMD( RET,	18 )
 #endif
 
 #ifdef _Compile_

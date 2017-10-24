@@ -19,7 +19,9 @@ int main()
 int CPU_construct( struct CPU_structure *CPU )
 {
 	stack( double, values );
+	stack( size_t, rets );
 	( CPU ) -> values = values;
+	( CPU ) -> rets = rets;
 	( CPU ) -> exe_sz = 0;
 	( CPU ) -> exe = getcode( CPU );
 }
@@ -269,6 +271,22 @@ int run( struct CPU_structure *CPU )
 				{
 					( CPU ) -> exe_cur += sizeof( size_t );
 				}
+				break;
+			}
+			case CALL:
+			{
+				size_t tmp = 0;
+				memcpy( &tmp, ( CPU ) -> exe_cur, sizeof( size_t ) );
+				size_t ret = ( size_t )(( CPU ) -> exe_cur) - ( size_t )(( CPU ) -> exe ) + sizeof( size_t );
+				Do( push( ( CPU ) -> rets, &ret ) );
+				( CPU ) -> exe_cur = ( CPU ) -> exe + tmp;
+				break;
+			}
+			case RET:
+			{
+				size_t ret = 0;
+				Do( pop( ( CPU ) -> rets, &ret ) );
+				( CPU ) -> exe_cur = ( CPU ) -> exe + ret;
 				break;
 			}
 		}
