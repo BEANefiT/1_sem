@@ -114,6 +114,14 @@ int compile( char *src, size_t src_sz, size_t *exe_sz, enum Compilier_modes mode
 			{
 				exe_cur += sizeof( int ) + sizeof( size_t );
 			}
+			if( strcmp( str, "je" ) == 0 )
+			{
+				exe_cur += sizeof( int ) + sizeof( size_t );
+			}
+			if( strcmp( str, "jne" ) == 0 )
+			{
+				exe_cur += sizeof( int ) + sizeof( size_t );
+			}
 
 			free( str );
 		}
@@ -184,7 +192,42 @@ int compile( char *src, size_t src_sz, size_t *exe_sz, enum Compilier_modes mode
 				exe_cur += sizeof( int );
 				CMD_JMP_code;
 			}
-				
+			if( strcmp( str, "je" ) == 0 )
+			{
+				memcpy( exe_cur, &CMD_JE, sizeof( int ) );
+				exe_cur += sizeof( int );
+				CMD_JMP_code;
+			}
+			if( strcmp( str, "jne" ) == 0 )
+			{
+				memcpy( exe_cur, &CMD_JNE, sizeof( int ) );
+				exe_cur += sizeof( int );
+				CMD_JMP_code;
+			}
+			if( strcmp( str, "ja" ) == 0 )
+			{
+				memcpy( exe_cur, &CMD_JA, sizeof( int ) );
+				exe_cur += sizeof( int );
+				CMD_JMP_code;
+			}
+			if( strcmp( str, "jae" ) == 0 )
+			{
+				memcpy( exe_cur, &CMD_JAE, sizeof( int ) );
+				exe_cur += sizeof( int );
+				CMD_JMP_code;
+			}
+			if( strcmp( str, "jb" ) == 0 )
+			{
+				memcpy( exe_cur, &CMD_JB, sizeof( int ) );
+				exe_cur += sizeof( int );
+				CMD_JMP_code;
+			}
+			if( strcmp( str, "jbe" ) == 0 )
+			{
+				memcpy( exe_cur, &CMD_JBE, sizeof( int ) );
+				exe_cur += sizeof( int );
+				CMD_JMP_code;
+			}
 			free( str );
 		}
 		*exe_sz = ( size_t ) exe_cur - ( size_t ) exe;

@@ -169,9 +169,110 @@ int run( struct CPU_structure *CPU )
 				( CPU ) -> exe_cur =  ( CPU ) -> exe + tmp ;
 				break;
 			}
+			case JE:
+			{
+				double value1 = 0, value2 = 0;
+				Do( pop( ( CPU ) -> values, &value1 ) );
+				Do( pop( ( CPU ) -> values, &value2 ) );
+				if( value1 == value2 )
+				{
+					size_t tmp = 0;
+					memcpy( &tmp, ( CPU ) -> exe_cur, sizeof( size_t ) );
+					( CPU ) -> exe_cur = ( CPU ) -> exe + tmp;
+				}
+				else
+				{
+					( CPU ) -> exe_cur += sizeof( size_t );
+				}
+				break;
+			}
+			case JNE:
+			{
+				double value1 = 0, value2 = 0;
+				Do( pop( ( CPU ) -> values, &value1 ) );
+				Do( pop( ( CPU ) -> values, &value2 ) );
+				if( value1 != value2 )
+				{
+					size_t tmp = 0;
+					memcpy( &tmp, ( CPU ) -> exe_cur, sizeof( size_t ) );
+					( CPU ) -> exe_cur = ( CPU ) -> exe + tmp;
+				}
+				else
+				{
+					( CPU ) -> exe_cur += sizeof( size_t );
+				}
+				break;
+			}
+			case JA:
+			{
+				double value1 = 0, value2 = 0;
+				Do( pop( ( CPU ) -> values, &value1 ) );
+				Do( pop( ( CPU ) -> values, &value2 ) );
+				if( value2 > value1 )
+				{
+					size_t tmp = 0;
+					memcpy( &tmp, ( CPU ) -> exe_cur, sizeof( size_t ) );
+					( CPU ) -> exe_cur = ( CPU ) -> exe + tmp;
+				}
+				else
+				{
+					( CPU ) -> exe_cur += sizeof( size_t );
+				}
+				break;
+			}
+			case JAE:
+			{
+				double value1 = 0, value2 = 0;
+				Do( pop( ( CPU ) -> values, &value1 ) );
+				Do( pop( ( CPU ) -> values, &value2 ) );
+				if( value2 >= value1 )
+				{
+					size_t tmp = 0;
+					memcpy( &tmp, ( CPU ) -> exe_cur, sizeof( size_t ) );
+					( CPU ) -> exe_cur = ( CPU ) -> exe + tmp;
+				}
+				else
+				{
+					( CPU ) -> exe_cur += sizeof( size_t );
+				}
+				break;
+			}
+			case JB:
+			{
+				double value1 = 0, value2 = 0;
+				Do( pop( ( CPU ) -> values, &value1 ) );
+				Do( pop( ( CPU ) -> values, &value2 ) );
+				if( value2 < value1 )
+				{
+					size_t tmp = 0;
+					memcpy( &tmp, ( CPU ) -> exe_cur, sizeof( size_t ) );
+					( CPU ) -> exe_cur = ( CPU ) -> exe + tmp;
+				}
+				else
+				{
+					( CPU ) -> exe_cur += sizeof( size_t );
+				}
+				break;
+			}
+			case JBE:
+			{
+				double value1 = 0, value2 = 0;
+				Do( pop( ( CPU ) -> values, &value1 ) );
+				Do( pop( ( CPU ) -> values, &value2 ) );
+				if( value2 <= value1 )
+				{
+					size_t tmp = 0;
+					memcpy( &tmp, ( CPU ) -> exe_cur, sizeof( size_t ) );
+					( CPU ) -> exe_cur = ( CPU ) -> exe + tmp;
+				}
+				else
+				{
+					( CPU ) -> exe_cur += sizeof( size_t );
+				}
+				break;
+			}
 		}
 	}
-
 }
 
 void *getcode( struct CPU_structure *CPU )

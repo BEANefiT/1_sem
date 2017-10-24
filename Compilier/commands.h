@@ -9,6 +9,12 @@ DEF_CMD( POPR,  7 )
 DEF_CMD( PUSHR, 8 )
 DEF_CMD( LABEL, 9 )
 DEF_CMD( JMP, 	10 )
+DEF_CMD( JE,	11 )
+DEF_CMD( JNE,	12 )
+DEF_CMD( JA,	13 )
+DEF_CMD( JAE,	14 )
+DEF_CMD( JB,	15 )
+DEF_CMD( JBE,	16 )
 #endif
 
 #ifdef _Compile_
