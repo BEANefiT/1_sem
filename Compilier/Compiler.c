@@ -26,6 +26,7 @@ int main( int argc, char *argv[] )
 	mode = second;
 	compile( src, src_sz, &exe_sz, mode, labels, exe );
 	makecode( exe, exe_sz );
+
 	return 0;
 }
 

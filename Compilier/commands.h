@@ -12,7 +12,6 @@ DEF_CMD( JMP, 	10 )
 #endif
 
 #ifdef _Compile_
-
 #define CMD_PUSH_code							\
 do									\
 {									\

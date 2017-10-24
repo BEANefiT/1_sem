@@ -12,6 +12,7 @@ int main()
 	CPU_construct( &CPU );
 	run( &CPU );
 	log_destr();
+
 	return 0;
 }
 

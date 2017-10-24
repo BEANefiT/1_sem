@@ -9,7 +9,6 @@ struct CPU_structure
 	void *exe;
 	void *exe_cur;
 };
-
 int CPU_construct( struct CPU_structure *CPU );
 int run( struct CPU_structure *CPU );
 void *getcode( struct CPU_structure *CPU );
