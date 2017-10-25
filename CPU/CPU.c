@@ -22,6 +22,8 @@ int CPU_construct( struct CPU_structure *CPU )
 	stack( size_t, rets );
 	( CPU ) -> values = values;
 	( CPU ) -> rets = rets;
+	( CPU ) -> RAM = ( double * )calloc( 64, sizeof( double ) );
+	( CPU ) -> RAM_sz = 64;
 	( CPU ) -> exe_sz = 0;
 	( CPU ) -> exe = getcode( CPU );
 }
@@ -287,6 +289,110 @@ int run( struct CPU_structure *CPU )
 				size_t ret = 0;
 				Do( pop( ( CPU ) -> rets, &ret ) );
 				( CPU ) -> exe_cur = ( CPU ) -> exe + ret;
+				break;
+			}
+			case RAMPUSH:
+			{
+				int index = 0;
+				memcpy( &index, ( CPU ) -> exe_cur, sizeof( int ) );
+				( CPU ) -> exe_cur += sizeof( int );
+				if( index >= ( CPU ) -> RAM_sz )
+				{
+
+				}
+				double value = (( CPU ) -> RAM)[ index ];
+				Do( push( ( CPU ) -> values, &value ) );
+				break;
+			}
+			case RAMPUSHR:
+			{
+				int index = 0;
+				int reg_num = 0;
+				memcpy( &reg_num, ( CPU ) -> exe_cur, sizeof( int ) );
+				( CPU ) -> exe_cur += sizeof( int );
+				switch( reg_num )
+				{
+					case 1:
+					{
+						index = ( CPU ) -> ax;
+						break;
+					}
+					case 2:
+					{
+						index = ( CPU ) -> bx;
+						break;
+					}
+					case 3:
+					{
+						index = ( CPU ) -> cx;
+						break;
+					}
+					case 4:
+					{
+						index = ( CPU ) -> dx;
+						break;
+					}
+				}
+				if( index >= ( CPU ) -> RAM_sz )
+				{
+
+				}
+				double value = (( CPU ) -> RAM)[ index ];
+				Do( push( ( CPU ) -> values, &value ) );
+				break;
+			}
+			case RAMPOP:
+			{
+				int index = 0;
+				memcpy( &index, ( CPU ) -> exe_cur, sizeof( int ) );
+				( CPU ) -> exe_cur += sizeof( int );
+				double value = 0;
+				Do( pop( ( CPU ) -> values, &value ) );
+				if( index >= ( CPU ) -> RAM_sz )
+				{
+					( CPU ) -> RAM = ( double * )realloc( ( CPU ) -> RAM, (index + 1) * sizeof( double ) );
+					( CPU ) -> RAM_sz = index + 1;
+				}
+				(( CPU ) -> RAM)[ index ] = value;
+				break;
+			}
+			case RAMPOPR:
+			{
+				int index = 0;
+				int reg_num = 0;
+				memcpy( &reg_num, ( CPU ) -> exe_cur, sizeof( int ) );
+				( CPU ) -> exe_cur += sizeof( int );
+				switch( reg_num )
+				{
+					case 1:
+					{
+						index = ( CPU ) -> ax;
+						break;
+					}
+					case 2:
+					{
+						index = ( CPU ) -> bx;
+						break;
+					}
+					case 3:
+					{
+						index = ( CPU ) -> cx;
+						break;
+					}
+					case 4:
+					{
+						index = ( CPU ) -> dx;
+						break;
+					}
+				}
+				double value = 0;
+				Do( pop( ( CPU ) -> values, &value ) );
+				if( index >= ( CPU ) -> RAM_sz )
+				{
+					( CPU ) -> RAM = ( double * )realloc( ( CPU ) -> RAM, (index + 1) * sizeof( double ) );
+					( CPU ) -> RAM_sz = index + 1;
+				}
+				(( CPU ) -> RAM)[ index ] = value;
 				break;
 			}
 		}
