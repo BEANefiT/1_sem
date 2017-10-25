@@ -169,31 +169,14 @@ int compile( char *src, size_t src_sz, size_t *exe_sz, enum Compilier_modes mode
 				sscanf( src + src_cur + 1, "%c", &tmpc );
 				if( tmpc == '[' )
 				{
-					sscanf( src + src_cur + 1, "[%[^]]]n", tmp, &src_cur_delta );
+					sscanf( src + src_cur + 1, "[%[^]]]%n", tmp, &src_cur_delta );
 					if( strcmp( tmp, "ax" ) == 0 || strcmp( tmp, "bx" ) == 0 || strcmp( tmp, "cx" ) == 0 || strcmp( tmp, "dx" ) == 0 )
 					{
 						src_cur += src_cur_delta;
 						memcpy( exe_cur, &CMD_RAMPUSHR, sizeof( int ) );
 						exe_cur += sizeof( int );
 						int reg_num = 0;
-						if( strcmp( tmp, "ax" ) == 0 )
-						{
-							reg_num = 1;
-						}
-						if( strcmp( tmp, "bx" ) == 0 )
-						{
-							reg_num = 2;
-						}
-						if( strcmp( tmp, "cx" ) == 0 )
-						{
-							reg_num = 3;
-						}
-						if( strcmp( tmp, "dx" ) == 0 )
-						{
-							reg_num = 4;
-						}
-						memcpy( exe_cur, &reg_num, sizeof( int ) );
-						exe_cur += sizeof( int );
+						REG_READ_code();
 					}
 					else
 					{
@@ -208,12 +191,14 @@ int compile( char *src, size_t src_sz, size_t *exe_sz, enum Compilier_modes mode
 				}
 				else
 				{
-					sscanf( src + src_cur, "%s", tmp );
+					sscanf( src + src_cur, "%s%n", tmp, &src_cur_delta );
 					if( strcmp( tmp, "ax" ) == 0 || strcmp( tmp, "bx" ) == 0 || strcmp( tmp, "cx" ) == 0 || strcmp( tmp, "dx" ) == 0 )
 					{
+						src_cur += src_cur_delta;
 						memcpy( exe_cur, &CMD_PUSHR, sizeof( int ) );
 						exe_cur += sizeof( int );
-						REG_READ_code;
+						int reg_num = 0;
+						REG_READ_code();
 					}
 					else
 					{
@@ -238,24 +223,7 @@ int compile( char *src, size_t src_sz, size_t *exe_sz, enum Compilier_modes mode
 						memcpy( exe_cur, &CMD_RAMPOPR, sizeof( int ) );
 						exe_cur += sizeof( int );
 						int reg_num = 0;
-						if( strcmp( tmp, "ax" ) == 0 )
-						{
-							reg_num = 1;
-						}
-						if( strcmp( tmp, "bx" ) == 0 )
-						{
-							reg_num = 2;
-						}
-						if( strcmp( tmp, "cx" ) == 0 )
-						{
-							reg_num = 3;
-						}
-						if( strcmp( tmp, "dx" ) == 0 )
-						{
-							reg_num = 4;
-						}
-						memcpy( exe_cur, &reg_num, sizeof( int ) );
-						exe_cur += sizeof( int );
+						REG_READ_code();
 					}
 					else
 					{
@@ -270,9 +238,12 @@ int compile( char *src, size_t src_sz, size_t *exe_sz, enum Compilier_modes mode
 				}
 				else
 				{
+					sscanf( src + src_cur, "%s%n", tmp, &src_cur_delta );
+					src_cur += src_cur_delta;
 					memcpy( exe_cur, &CMD_POPR, sizeof( int ) );
 					exe_cur += sizeof( int );
-					REG_READ_code;
+					int reg_num = 0;
+					REG_READ_code();
 				}
 			}
 			if( strcmp( str, "add" ) == 0 )

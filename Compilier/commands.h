@@ -34,21 +34,16 @@ do									\
 	exe_cur += sizeof( double );					\
 } while( 0 )
 
-#define REG_READ_code							\
+#define REG_READ_code()							\
 do									\
 {									\
-	char *reg = ( char * )calloc( 2, sizeof( char ) );		\
-	sscanf ( src + src_cur, "%s%n", reg, &src_cur_delta );		\
-	src_cur += src_cur_delta;					\
-									\
-	int reg_num;							\
-	if( strcmp( reg, "ax" ) == 0 )					\
+	if( strcmp( tmp, "ax" ) == 0 )					\
 		reg_num = 1;						\
-	if( strcmp( reg, "bx" ) == 0 )					\
+	if( strcmp( tmp, "bx" ) == 0 )					\
 		reg_num = 2;						\
-	if( strcmp( reg, "cx" ) == 0 )					\
+	if( strcmp( tmp, "cx" ) == 0 )					\
 		reg_num = 3;						\
-	if( strcmp( reg, "dx" ) == 0 )					\
+	if( strcmp( tmp, "dx" ) == 0 )					\
 		reg_num = 4;						\
 									\
 	memcpy( exe_cur, &reg_num, sizeof( int ) );			\
