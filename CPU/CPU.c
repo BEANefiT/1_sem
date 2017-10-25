@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 #include "./../stack_t/stack.h"
 #include "./../log/log.h"
 #include "CPU.h"
@@ -393,6 +394,14 @@ int run( struct CPU_structure *CPU )
 					( CPU ) -> RAM_sz = index + 1;
 				}
 				(( CPU ) -> RAM)[ index ] = value;
+				break;
+			}
+			case SQRT:
+			{
+				double value = 0;
+				Do( pop( ( CPU ) -> values, &value ) );
+				double result = sqrt( value );
+				Do( push( ( CPU ) -> values, &result ) );
 				break;
 			}
 		}

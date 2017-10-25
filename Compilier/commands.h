@@ -21,6 +21,7 @@ DEF_CMD( RAMPUSH,  19 )
 DEF_CMD( RAMPUSHR, 20 )
 DEF_CMD( RAMPOP,   21 )
 DEF_CMD( RAMPOPR,  22 )
+DEF_CMD( SQRT,	   23 )
 #endif
 
 #ifdef _Compile_

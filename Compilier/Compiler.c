@@ -147,6 +147,10 @@ int compile( char *src, size_t src_sz, size_t *exe_sz, enum Compilier_modes mode
 			{
 				exe_cur += sizeof( int ) + sizeof( size_t );
 			}
+			if( strcmp( str, "sqrt" ) == 0 )
+			{
+				exe_cur += sizeof( int );
+			}
 
 			free( str );
 		}
@@ -322,6 +326,11 @@ int compile( char *src, size_t src_sz, size_t *exe_sz, enum Compilier_modes mode
 			if( strcmp( str, "ret" ) == 0 )
 			{
 				memcpy( exe_cur, &CMD_RET, sizeof( int ) );
+				exe_cur += sizeof( int );
+			}
+			if( strcmp( str, "sqrt" ) == 0 )
+			{
+				memcpy( exe_cur, &CMD_SQRT, sizeof( int ) );
 				exe_cur += sizeof( int );
 			}
 			free( str );
