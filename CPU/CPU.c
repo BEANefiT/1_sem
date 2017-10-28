@@ -6,6 +6,7 @@
 #include "./../stack_t/stack.h"
 #include "./../log/log.h"
 #include "CPU.h"
+#include "./../Compilier/commands.h"
 
 int main()
 {
@@ -33,11 +34,11 @@ int CPU_construct( struct CPU_structure *CPU )
 int run( struct CPU_structure *CPU )
 {
 	#define DEF_CMD( NAME, name, num, Cmplr_code2, Cmplr_code1, CPU_code ) NAME = num,
-	enum CMD
+	/*enum CMD
 	{
 		#include "./../Compilier/commands.h"
 		end = 0
-	};
+	};*/
 	#undef DEF_CMD
 	while( ( CPU ) -> exe_cur < ( CPU ) -> exe + ( CPU ) -> exe_sz )
 	{
@@ -49,7 +50,7 @@ int run( struct CPU_structure *CPU )
 			#define DEF_CMD( NAME, name, num, Cmplr_code2, Cmplr_code1, CPU_code )	\
 			do									\
 			{									\
-				case NAME:							\
+				case num:							\
 				{								\
 					CPU_code;						\
 					break;							\

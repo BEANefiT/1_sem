@@ -87,11 +87,12 @@ DEF_CMD( OUT, out, 12, { to_exe( &CMD_OUT, int ); }, sizeof( int ), {
 									Top( values, &value );
 									printf( "%lg\n", value );
 								    });
-DEF_CMD( LABEL, label, 13, ,  0;{
+DEF_CMD( LABEL, label, 13, ,  0;
 					int label = -1;
 					from_src( %d, &label );
 					labels[ label ] = ( size_t )exe_cur - ( size_t )exe;
-				},
+					printf( "%d\n", label );
+				,
 
 				{
 
@@ -136,7 +137,7 @@ DEF_CMD( JA, ja, 17,    {
 			sizeof( int ) + sizeof( size_t ),
 			
 			{
-				Jmpif( > );
+				JmpIf( > );
 			});
 DEF_CMD( JAE, jae, 18,  {
 				to_exe( &CMD_JAE, int );
@@ -166,7 +167,7 @@ DEF_CMD( JBE, jbe, 20,  {
 			sizeof( int ) + sizeof( size_t ),
 			
 			{
-				Jmpif( <= );
+				JmpIf( <= );
 			});
 DEF_CMD( CALL, call, 21,{
 				to_exe( &CMD_CALL, int );
