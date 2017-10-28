@@ -1,6 +1,8 @@
+#define _Compilier_
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include "commands.h"
 
 enum Compilier_modes
 {
@@ -66,7 +68,6 @@ int compile( char *src, size_t src_sz, size_t *exe_sz, enum Compilier_modes mode
 		{
 			char *str = ( char * )calloc( 10, sizeof( char ) );
 			from_src( %s, str );
-			printf( "%d\n", src_cur );
 			#define DEF_CMD( NAME, name, num, Cmplr_code2, Cmplr_code1, CPU_code )		\
 			do										\
 			{										\
@@ -89,7 +90,6 @@ int compile( char *src, size_t src_sz, size_t *exe_sz, enum Compilier_modes mode
 		{
 			char *str = ( char * )calloc( 10, sizeof( char ) );
 			from_src( %s, str );
-			//printf( "%d ", src_cur );
 			#define DEF_CMD( NAME, name, num, Cmplr_code2, Cmplr_code1,  CPU_code )	\
 			do										\
 			{										\
