@@ -91,7 +91,6 @@ DEF_CMD( LABEL, label, 13, ,  0;
 					int label = -1;
 					from_src( %d, &label );
 					labels[ label ] = ( size_t )exe_cur - ( size_t )exe;
-					printf( "%zd\n", labels[ label ] );
 				,
 
 				{
@@ -107,7 +106,6 @@ DEF_CMD( JMP, jmp, 14,  {
 			{
 				size_t tmp = 0;
 				from_exe( &tmp, size_t );
-				printf( "%zd\n", tmp );
 				( CPU ) -> exe_cur =  ( CPU ) -> exe + tmp ;
 			});
 DEF_CMD( JE, je, 15,    {
@@ -382,7 +380,7 @@ do							\
 	double value1 = 0, value2 = 0;			\
 	Do( pop( ( CPU ) -> values, &value1 ) );	\
 	Do( pop( ( CPU ) -> values, &value2 ) );	\
-	double result = value1 operator value2;		\
+	double result = value2 operator value1;		\
 	Do( push( ( CPU ) -> values, &result ) );	\
 } while( 0 )
 

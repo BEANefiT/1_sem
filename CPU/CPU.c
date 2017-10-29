@@ -33,13 +33,6 @@ int CPU_construct( struct CPU_structure *CPU )
 
 int run( struct CPU_structure *CPU )
 {
-	#define DEF_CMD( NAME, name, num, Cmplr_code2, Cmplr_code1, CPU_code ) NAME = num,
-	/*enum CMD
-	{
-		#include "./../Compilier/commands.h"
-		end = 0
-	};*/
-	#undef DEF_CMD
 	while( ( CPU ) -> exe_cur < ( CPU ) -> exe + ( CPU ) -> exe_sz )
 	{
 		int cmd = 0;
@@ -47,15 +40,12 @@ int run( struct CPU_structure *CPU )
 		switch( cmd )
 		{
 
-			#define DEF_CMD( NAME, name, num, Cmplr_code2, Cmplr_code1, CPU_code )	\
-			do									\
-			{									\
+			#define DEF_CMD( NAME, name, num, Cmplr_code2, Cmplr_code1, CPU_code );	\
 				case num:							\
 				{								\
 					CPU_code;						\
 					break;							\
 				}								\
-			} while( 0 )
 
 			#include "./../Compilier/commands.h"
 			#undef DEF_CMD
