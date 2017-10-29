@@ -91,7 +91,7 @@ DEF_CMD( LABEL, label, 13, ,  0;
 					int label = -1;
 					from_src( %d, &label );
 					labels[ label ] = ( size_t )exe_cur - ( size_t )exe;
-					printf( "%d\n", label );
+					printf( "%zd\n", labels[ label ] );
 				,
 
 				{
@@ -107,6 +107,7 @@ DEF_CMD( JMP, jmp, 14,  {
 			{
 				size_t tmp = 0;
 				from_exe( &tmp, size_t );
+				printf( "%zd\n", tmp );
 				( CPU ) -> exe_cur =  ( CPU ) -> exe + tmp ;
 			});
 DEF_CMD( JE, je, 15,    {
@@ -130,7 +131,7 @@ DEF_CMD( JNE, jne, 16,  {
 				JmpIf( != );
 			});
 DEF_CMD( JA, ja, 17,    {
-				to_exe( CMD_JA, int );
+				to_exe( &CMD_JA, int );
 				CMD_JMP_code();
 			},
 
@@ -208,7 +209,6 @@ do									\
 	}								\
 	if( tmpc == '[' )						\
 	{								\
-		src_cur += 1;						\
 		check_src( [%[^]]], tmp );				\
 		if( ifreg( tmp ) )					\
 		{							\
@@ -219,6 +219,7 @@ do									\
 		{							\
 			push_type = 2;					\
 			int index;					\
+			src_cur += 1;					\
 			from_src( %d, &index );				\
 			memcpy( arg, &index, sizeof( int ) );		\
 		}							\
@@ -245,7 +246,6 @@ do									\
 #define REG_READ_code()							\
 do									\
 {									\
-	src_cur += src_cur_delta;					\
 	int reg_num = 0;						\
 	if( strcmp( tmp, "ax" ) == 0 )					\
 		reg_num = 1;						\
@@ -263,7 +263,7 @@ do									\
 {									\
 	int label = -1;							\
 	from_src( %d, &label );						\
-	to_exe( labels[ label ], size_t );				\
+	to_exe( labels + label, size_t );				\
 } while( 0 )
 
 #define ifreg( tmp ) strcmp( tmp, "ax" ) == 0 || strcmp( tmp, "bx" ) == 0 || strcmp( tmp, "cx" ) == 0 || strcmp( tmp, "dx" ) == 0
