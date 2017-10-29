@@ -68,7 +68,6 @@ int compile( char *src, size_t src_sz, size_t *exe_sz, enum Compilier_modes mode
 		{
 			char *str = ( char * )calloc( 10, sizeof( char ) );
 			from_src( %s, str );
-			printf( "%s\n", str );
 			#define DEF_CMD( NAME, name, num, Cmplr_code2, Cmplr_code1, CPU_code )		\
 			do										\
 			{										\
