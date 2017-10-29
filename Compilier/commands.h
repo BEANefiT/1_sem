@@ -420,7 +420,7 @@ do								\
 	double value1 = 0, value2 = 0;				\
 	Pop( values, &value1 );					\
 	Pop( values, &value2 );					\
-	if( value1 operator value2 )				\
+	if( value2 operator value1 )				\
 	{							\
 		size_t tmp = 0;					\
 		from_exe( &tmp, size_t );			\
