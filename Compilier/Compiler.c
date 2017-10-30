@@ -1,4 +1,5 @@
 #define _Compilier_
+#define label_amount 20
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -9,36 +10,55 @@ enum Compilier_modes
 	first,
 	second
 };
-char *get_src( char *src_file_name, size_t *src_sz );
+
+struct Compilier_structure
+{
+	char *src;
+	size_t src_sz;
+	size_t *labels;
+	void *exe;
+	size_t exe_sz;
+	enum Compilier_modes mode;
+};
+
+int Compilier_constr( struct Compilier_structure *Compilier );
+char *get_src( char *src_file_name, struct Compilier_structure *Compilier );
 size_t srcSize( FILE *src );
-int compile( char* src, size_t src_sz, size_t *exe_sz, enum Compilier_modes mode, size_t *labels, void *exe );
-int makecode( void *exe, size_t exe_sz );
+int compile( struct Compilier_structure *Compilier );
+int makecode( struct Compilier_structure *Compilier );
 
 int main( int argc, char *argv[] )
 {
-	size_t src_sz = 0;
-	char *src = get_src( argv[ 1 ], &src_sz );
-	size_t exe_sz = 0;
-	#define label_amount 20
-	size_t labels[ label_amount ] = {};
-	#undef label_amount
-	void *exe = calloc( sizeof( double ), src_sz );
-	enum Compilier_modes mode = first;
-	compile( src, src_sz, &exe_sz, mode, labels, exe );
-	mode = second;
-	compile( src, src_sz, &exe_sz, mode, labels, exe );
-	makecode( exe, exe_sz );
+	struct Compilier_structure Compilier;
+	Compilier_constr( &Compilier );
+	Compilier.src = get_src( argv[ 1 ], &Compilier );
+	Compilier.mode = first;
+	compile( &Compilier );
+	Compilier.mode = second;
+	compile( &Compilier );
+	makecode( &Compilier );
 
 	return 0;
 }
 
-char *get_src( char *src_file_name, size_t *src_sz )
+int Compilier_constr( struct Compilier_structure *Compilier )
+{
+	Compilier -> src_sz = 0;
+	Compilier -> src = NULL;
+	Compilier -> exe_sz = 0;
+	Compilier -> labels = ( size_t * )calloc( label_amount, sizeof( size_t ) );
+	Compilier -> exe = NULL;
+	Compilier -> exe_sz = 0;
+}
+
+char *get_src( char *src_file_name, struct Compilier_structure *Compilier )
 {
 	FILE *src_file = fopen( src_file_name, "r" );
-	*src_sz = srcSize( src_file );
-	char *src = ( char * )calloc( sizeof( char ), *src_sz );
-	fread( src, sizeof( char ), *src_sz, src_file );
+	Compilier -> src_sz = srcSize( src_file );
+	char *src = ( char * )calloc( sizeof( char ), Compilier -> src_sz );
+	fread( src, sizeof( char ), Compilier -> src_sz, src_file );
 	fclose( src_file );
+	Compilier -> exe = calloc( Compilier -> src_sz, sizeof( double ) );
 	return src;
 }
 
@@ -50,7 +70,7 @@ size_t srcSize( FILE *src )
 	return src_sz;
 }
 
-int compile( char *src, size_t src_sz, size_t *exe_sz, enum Compilier_modes mode, size_t *labels, void *exe )
+int compile( struct Compilier_structure *Compilier )
 {
 	#define DEF_CMD( NAME,  name, num, Cmplr_code2, Cmplr_code1, CPU_code ) const int CMD_##NAME = num;
 
@@ -58,13 +78,13 @@ int compile( char *src, size_t src_sz, size_t *exe_sz, enum Compilier_modes mode
 
 	#undef DEF_CMD
 
-	void *exe_cur = exe;
+	void *exe_cur = Compilier -> exe;
 	int src_cur = 0;
 	int src_cur_delta = 0;
 
-	if( mode == first )
+	if( Compilier -> mode == first )
 	{
-		while( src_cur < src_sz )
+		while( src_cur < Compilier -> src_sz )
 		{
 			char *str = ( char * )calloc( 10, sizeof( char ) );
 			from_src( %s, str );
@@ -86,9 +106,9 @@ int compile( char *src, size_t src_sz, size_t *exe_sz, enum Compilier_modes mode
 		return 0;
 	}
 	
-	if( mode == second )
+	if( Compilier -> mode == second )
 	{
-		while( src_cur < src_sz )							
+		while( src_cur < Compilier -> src_sz )							
 		{
 			char *str = ( char * )calloc( 10, sizeof( char ) );
 			from_src( %s, str );
@@ -107,14 +127,14 @@ int compile( char *src, size_t src_sz, size_t *exe_sz, enum Compilier_modes mode
 
 			free( str );
 		}
-		*exe_sz = ( size_t ) exe_cur - ( size_t ) exe;
+		Compilier -> exe_sz = ( size_t ) exe_cur - ( size_t )( Compilier -> exe );
 		return 0;
 	}
 }
 
-int makecode( void *exe, size_t exe_sz )
+int makecode( struct Compilier_structure *Compilier )
 {
 	FILE *exe_file = fopen( "./../CPU/exe", "w" );
-	fwrite( exe, exe_sz, sizeof( char ), exe_file );
+	fwrite( Compilier -> exe, Compilier -> exe_sz, sizeof( char ), exe_file );
 	fclose( exe_file );
 }

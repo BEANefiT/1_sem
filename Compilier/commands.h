@@ -90,7 +90,7 @@ DEF_CMD( OUT, out, 12, { to_exe( &CMD_OUT, int ); }, sizeof( int ), {
 DEF_CMD( LABEL, label, 13, ,  0;
 					int label = -1;
 					from_src( %d, &label );
-					labels[ label ] = ( size_t )exe_cur - ( size_t )exe;
+					( Compilier -> labels )[ label ] = ( size_t )exe_cur - ( size_t )( Compilier -> exe );
 				,
 
 				{
@@ -188,6 +188,14 @@ DEF_CMD( RET, ret, 22, { to_exe( &CMD_RET, int ); }, sizeof( int ), {
 									( CPU ) -> exe_cur = ( CPU ) -> exe + ret;
 								    });
 DEF_CMD( SQRT, sqrt, 23, { to_exe( &CMD_SQRT, int ); }, sizeof( int ), unary_cmd( sqrt ) );
+DEF_CMD( IN, in, 24, { to_exe( &CMD_IN, int ); }, sizeof( int ), {
+									double value = 0;
+									scanf( "%lg", &value );
+									Push( values, &value );
+								 });
+DEF_CMD( SIN, sin, 25, { to_exe( &CMD_SIN, int ); }, sizeof( int ), unary_cmd( sin ) );
+DEF_CMD( COS, cos, 26, { to_exe( &CMD_COS, int ); }, sizeof( int ), unary_cmd( cos ) );
+DEF_CMD( TG, tan, 27, { to_exe( &CMD_TG, int ); }, sizeof( int ), unary_cmd( tan ) );
 #endif /*DEF_CMD*/
 
 #ifndef _COMMANDS_H_
@@ -261,7 +269,7 @@ do									\
 {									\
 	int label = -1;							\
 	from_src( %d, &label );						\
-	to_exe( labels + label, size_t );				\
+	to_exe( Compilier -> labels + label, size_t );			\
 } while( 0 )
 
 #define ifreg( tmp ) strcmp( tmp, "ax" ) == 0 || strcmp( tmp, "bx" ) == 0 || strcmp( tmp, "cx" ) == 0 || strcmp( tmp, "dx" ) == 0
@@ -273,17 +281,17 @@ do									\
 	exe_cur += sizeof( size );					\
 } while( 0 )
 
-#define from_src( type, dest )						\
-do									\
-{									\
-	sscanf( src + src_cur, #type"%n", dest, &src_cur_delta );	\
-	src_cur += src_cur_delta;					\
+#define from_src( type, dest )							\
+do										\
+{										\
+	sscanf( Compilier -> src + src_cur, #type"%n", dest, &src_cur_delta );	\
+	src_cur += src_cur_delta;						\
 } while( 0 )
 
-#define check_src( type, dest )						\
-do									\
-{									\
-	sscanf( src + src_cur, #type"%n", dest, &src_cur_delta );	\
+#define check_src( type, dest )							\
+do										\
+{										\
+	sscanf( Compilier -> src + src_cur, #type"%n", dest, &src_cur_delta );	\
 } while( 0 )
 #endif /*_Compilier_*/
 
