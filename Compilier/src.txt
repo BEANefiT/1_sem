@@ -1,0 +1,14 @@
+push 1
+out
+push 2
+out
+jb 3
+push 3
+out
+push 4
+out
+label 3
+push 5
+out
+push 6
+out
