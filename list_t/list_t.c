@@ -1,8 +1,10 @@
 #include <stdio.h>
 
+typedef int elem_t;
+
 struct list_elem
 {
-	int elem;
+	elem_t elem;
 	int next;
 	int prev;
 };
@@ -13,14 +15,18 @@ struct list_t
 	int head;
 	int tail;
 	int free;
+	size_t size;
+	size_t capacity;
 };
 
-int list_construct( struct list_t *list, size_t sz )
+int list_construct( struct list_t *list )
 {
-	list -> data = ( struct list_elem * )calloc( sz, sizeof( struct list_elem ));
+	list -> data = ( struct list_elem * )calloc( 1, sizeof( struct list_elem ));
 	list -> head = 0;
 	list -> tail = 0;
 	list -> free = 0;
+	list -> size = 1;
+	list -> capacity = 0;
 	(list -> data)[ 0 ].prev = 0;
 	for( int i = 0; i < sz; i++ )
 	{
@@ -29,41 +35,71 @@ int list_construct( struct list_t *list, size_t sz )
 	}
 }
 
+int list_resize( struct list_t *list, size_t size )
+{
+	list -> data = ( struct list_elem * )calloc( size, sizeof( struct list_elem ) );
+	list -> size = size;
+}
+
 int push_tail( struct list_t *list, int elem )
 {
+	if( list -> capacity >= list -> size )
 	{
-		( list -> data )[ free ].elem = elem;
-		( list -> data )[ free ].prev = tail;
-		( list -> data )[ head ].prev = ( list -> data )[ free ].next;
-		tail = free;
-		free = ( list -> data )[ free ].next;
+		list_resize( list, 2 * list -> size );
 	}
+	( list -> data )[ free ].elem = elem;
+	( list -> data )[ free ].prev = tail;
+	( list -> data )[ head ].prev = ( list -> data )[ free ].next;
+	tail = free;
+	free = ( list -> data )[ free ].next;
+	list -> capacity ++;
 }
 
 int push_head( struct list_t *list, int elem )
 {
+	if( list -> capacity >= list -> size )
+	{
+		list_resize( list, 2 * list -> size );
+	}
 	( list -> data )[ free ].elem = elem;
 	( list -> data )[ free ].next = head;
-	( list -> data )[ tail ].next = ( list -> data )[ free ].next;
 	head = free;
 	free = ( list -> data )[ free ].next;
+	( list -> data )[ tail ].next = free;
+	( list -> data )[ head ].prev = free;
+	list -> capacity ++;
 }
 
 int pop_tail( struct list_t *list, int *dest )
 {
+	if( list -> capacity <= 0 )
+	{
+		return tail;
+	}
 	*dest = ( list -> data )[ tail ].elem;
 	( list -> data )[ tail ].elem = -1;
 	free = tail;
 	tail = ( list -> data )[ tail ].prev;
+	( list -> data )[ head ].prev = free;
+	list -> capacity --;
 	return tail;
 }
 
 int pop_head( struct list_t *list, int *dest )
 {
+	if( list -> capacity <= 0 )
+	{
+		return tail;
+	}
+
 	*dest = ( list -> data )[ head ].elem;
 	( list -> data )[ head ].elem = -1;
 	free = head;
+	( list -> data )[ free ].prev = -1;
+	( list -> data )[ free ].next = ( list -> data )[ tail ].next;
 	head = ( list -> data )[ head ].next;
+	( list -> data )[ tail ].next = free;
+	list -> capacity --;
 	return head;
 }
 
