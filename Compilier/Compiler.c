@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "commands.h"
-#include "Compiler.h"
+#include <commands.h>
+#include <Compiler.h>
 
 int main( int argc, char *argv[] )
 {
@@ -55,7 +55,7 @@ int compile( struct Compilier_structure *Compilier )
 {
 	#define DEF_CMD( NAME,  name, num, Cmplr_code2, Cmplr_code1, CPU_code ) const int CMD_##NAME = num;
 
-	#include "commands.h"
+	#include <commands.h>
 
 	#undef DEF_CMD
 
@@ -78,7 +78,7 @@ int compile( struct Compilier_structure *Compilier )
 				}									\
 			}while( 0 )
 
-			#include "commands.h"
+			#include <commands.h>
 
 			#undef DEF_CMD
 
@@ -102,7 +102,7 @@ int compile( struct Compilier_structure *Compilier )
 				}									\
 			}while( 0 )
 
-			#include "commands.h"
+			#include <commands.h>
 
 			#undef DEF_CMD
 
@@ -115,7 +115,7 @@ int compile( struct Compilier_structure *Compilier )
 
 int makecode( struct Compilier_structure *Compilier )
 {
-	FILE *exe_file = fopen( "./../CPU/exe", "w" );
+	FILE *exe_file = fopen( "exe", "w" );
 	fwrite( Compilier -> exe, Compilier -> exe_sz, sizeof( char ), exe_file );
 	fclose( exe_file );
 }

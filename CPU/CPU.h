@@ -3,11 +3,8 @@ struct CPU_structure
 	stack_t *values;
 	stack_t *rets;
 	double *RAM;
+	double *registers;
 	size_t RAM_sz;
-	double ax;
-	double bx;
-	double cx;
-	double dx;
 	size_t exe_sz;
 	void *exe;
 	void *exe_cur;

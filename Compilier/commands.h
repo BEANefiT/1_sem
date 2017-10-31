@@ -196,6 +196,7 @@ DEF_CMD( IN, in, 24, { to_exe( &CMD_IN, int ); }, sizeof( int ), {
 DEF_CMD( SIN, sin, 25, { to_exe( &CMD_SIN, int ); }, sizeof( int ), unary_cmd( sin ) );
 DEF_CMD( COS, cos, 26, { to_exe( &CMD_COS, int ); }, sizeof( int ), unary_cmd( cos ) );
 DEF_CMD( TG, tan, 27, { to_exe( &CMD_TG, int ); }, sizeof( int ), unary_cmd( tan ) );
+DEF_CMD( CAT, cat, 28, { to_exe( &CMD_CAT, int ); }, sizeof( int ), DrawCat(); );
 #endif /*DEF_CMD*/
 
 #ifndef _COMMANDS_H_
@@ -322,64 +323,20 @@ do							\
 	Do( top( ( CPU ) -> stack_name, ptr ) );	\
 } while( 0 )
 
-#define REG_read( reg )				\
-do						\
-{						\
-	int reg_num = 0;			\
-	from_exe( &reg_num, int );		\
-	switch( reg_num )			\
-	{					\
-		case 1:				\
-		{				\
-			reg = ( CPU ) -> ax;	\
-			break;			\
-		}				\
-		case 2:				\
-		{				\
-			reg = ( CPU ) -> bx;	\
-			break;			\
-		}				\
-		case 3:				\
-		{				\
-			reg = ( CPU ) -> cx;	\
-			break;			\
-		}				\
-		case 4:				\
-		{				\
-			reg = ( CPU ) -> dx;	\
-			break;			\
-		}				\
-	}					\
+#define REG_read( reg )					\
+do							\
+{							\
+	int reg_num = 0;				\
+	from_exe( &reg_num, int );			\
+	reg = ( ( CPU ) -> registers )[ reg_num - 1 ];	\
 } while( 0 )
 
-#define REG_write( arg )			\
-do						\
-{						\
-	int reg_num = 0;			\
-	from_exe( &reg_num, int );		\
-	switch( reg_num )			\
-	{					\
-		case 1:				\
-		{				\
-			( CPU ) -> ax = arg;	\
-			break;			\
-		}				\
-		case 2:				\
-		{				\
-			( CPU ) -> bx = arg;	\
-			break;			\
-		}				\
-		case 3:				\
-		{				\
-			( CPU ) -> cx = arg;	\
-			break;			\
-		}				\
-		case 4:				\
-		{				\
-			( CPU ) -> dx = arg;	\
-			break;			\
-		}				\
-	}					\
+#define REG_write( arg )				\
+do							\
+{							\
+	int reg_num = 0;				\
+	from_exe( &reg_num, int );			\
+	( ( CPU ) -> registers )[ reg_num - 1 ] = arg;	\
 } while( 0 )
 
 #define binary_cmd( operator )				\
@@ -438,6 +395,12 @@ do								\
 	{							\
 		( CPU ) -> exe_cur += sizeof( size_t );		\
 	}							\
+} while( 0 )
+
+#define DrawCat()	\
+do			\
+{			\
+	printf( "             *     ,MMM8&&&.            *\n                  MMMM88&&&&&    .\n                 MMMM88&&&&&&&\n     *           MMM88&&&&&&&&\n                 MMM88&&&&&&&&\n                 'MMM88&&&&&&'\n                   'MMM8&&&'      *\n          |\\___/|\n          )     (             .              '\n         =\\     /=\n           )===(       *\n          /     \\\n          |     |\n         /       \\\n         \\       /\n  _/\\_/\\_/\\__  _/_/\\_/\\_/\\_/\\_/\\_/\\_/\\_/\\_/\\_\n  |  |  |  |( (  |  |  |  |  |  |  |  |  |  |\n  |  |  |  | ) ) |  |  |  |  |  |  |  |  |  |\n  |  |  |  |(_(  |  |  |  |  |  |  |  |  |  |\n  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |\n" ); \
 } while( 0 )
 
 #endif /*_CPU_*/

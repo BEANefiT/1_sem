@@ -3,10 +3,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
-#include "./../stack_t/stack.h"
-#include "./../log/log.h"
-#include "CPU.h"
-#include "./../Compilier/commands.h"
+#include <stack.h>
+#include <log.h>
+#include <CPU.h>
+#include <commands.h>
+//#include "./../Compilier/commands.h"
 
 int main()
 {
@@ -25,6 +26,7 @@ int CPU_construct( struct CPU_structure *CPU )
 	stack( size_t, rets );
 	( CPU ) -> values = values;
 	( CPU ) -> rets = rets;
+	( CPU ) -> registers = ( double * )calloc( 4, sizeof( double ) );
 	( CPU ) -> RAM = ( double * )calloc( 64, sizeof( double ) );
 	( CPU ) -> RAM_sz = 64;
 	( CPU ) -> exe_sz = 0;
@@ -47,7 +49,7 @@ int run( struct CPU_structure *CPU )
 					break;							\
 				}								\
 
-			#include "./../Compilier/commands.h"
+			#include <commands.h>
 			#undef DEF_CMD
 		}
 	}
