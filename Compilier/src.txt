@@ -2,6 +2,7 @@ push 1
 out
 push 2
 out
+<<<<<<< HEAD
 jb 3
 push 3
 out
@@ -11,4 +12,17 @@ label 3
 push 5
 out
 push 6
+=======
+push 3
+out
+add
+out
+pop ax
+out
+push ax
+out
+jmp 1
+div
+label 1
+>>>>>>> autogeneration
 out
