@@ -9,3 +9,4 @@ int pop_head( struct list_t *list, elem_t *dest );
 int insert( struct list_t *list, int pos, elem_t elem );
 int compress( struct list_t *list );
 elem_t list_get_elem( struct list_t *list, int pos );
+int dumper( struct list_t *list );

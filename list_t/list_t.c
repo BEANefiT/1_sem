@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "list_t.h"
+#include <list_t.h>
 
 struct list_elem
 {
@@ -33,15 +33,20 @@ int list_construct( struct list_t *list )
 
 int list_resize( struct list_t *list, size_t size )
 {
-	list -> data = ( struct list_elem * )realloc( list, size * sizeof( struct list_elem ) );
+	list -> data = ( struct list_elem * )realloc( list -> data, size * sizeof( struct list_elem ) );
+	printf( "resizing %zd -> %zd\n", list -> size, size );
 	for( int i = list -> size; i < size - 1; i++ )
 	{
 		( list -> data )[ i ].next = i + 1;
 		( list -> data )[ i + 1 ].prev = i;
 	}
-	( list -> data )[ list -> free ].next = list -> size;
-	( list -> data )[ size - 1 ].next = -1;
+	( list -> data )[ list -> free ].prev = size - 1;
+	( list -> data )[ size - 1 ].next = list -> free;
+	list -> free = list -> size;
+	( list -> data )[ list -> head ].prev = list -> free;
+	( list -> data )[ list -> tail ].next = list -> free;
 	list -> size = size;
+	printf( "head = %d\n", ( list -> data )[ list -> head ].elem );
 }
 
 int push_tail( struct list_t *list, elem_t elem )
@@ -65,9 +70,10 @@ int push_head( struct list_t *list, elem_t elem )
 		list_resize( list, 2 * list -> size );
 	}
 	( list -> data )[ list -> free ].elem = elem;
+	int tmp = list -> free;
 	( list -> data )[ list -> free ].next = list -> head;
 	list -> head = list -> free;
-	list -> free = ( list -> data )[ list -> free ].next;
+	list -> free = ( list -> data )[ tmp ].next;
 	( list -> data )[ list -> tail ].next = list -> free;
 	( list -> data )[ list -> head ].prev = list -> free;
 	list -> capacity ++;
@@ -163,4 +169,27 @@ elem_t list_get_elem( struct list_t *list, int pos )
 	list -> free = pos;
 	list -> capacity --;
 	return result;
+}
+
+int dumper( struct list_t *list )
+{
+	FILE *dump = fopen( "dump", "w" );
+	fprintf( dump, 	"digraph dump\n"
+			"{\n" );
+	for( int i = 0; i < list -> size; i++ )
+	{
+		fprintf( dump, "Node%d [ shape = record, label = \"<index> index = %d | { <next> next = %d | elem = %d | <prev>  prev = %d }\" ]\n", i, i, ( list -> data )[ i ].next, ( list -> data )[ i ].elem, ( list -> data )[ i ].prev );
+	}
+	for( int i = 0; i < list -> size; i++ )
+	{
+		if( ( list -> data )[ i ].next != -1 )
+		{
+			fprintf( dump, "Node%d:<next> -> Node%d:<index> [color = green]\n", i, ( list -> data )[ i ].next );
+		}
+		if( ( list -> data )[ i ].prev != -1 )
+		{
+			fprintf( dump, "Node%d:<prev> -> Node%d:<index> [color = blue]\n", i, ( list -> data )[ i ].prev );
+		}
+	}
+	fprintf( dump, "}" );
 }
