@@ -1,0 +1,11 @@
+typedef int elem_t;
+typedef struct list_t list_t;
+int list_construct( struct list_t *list );
+int list_resize( struct list_t *list, size_t size );
+int push_tail( struct list_t *list, elem_t elem );
+int push_head( struct list_t *list, elem_t elem );
+int pop_tail( struct list_t *list, elem_t *dest );
+int pop_head( struct list_t *list, elem_t *dest );
+int insert( struct list_t *list, int pos, elem_t elem );
+int compress( struct list_t *list );
+elem_t list_get_elem( struct list_t *list, int pos );
