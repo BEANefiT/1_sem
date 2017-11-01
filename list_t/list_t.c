@@ -19,6 +19,23 @@ struct list_t
 	size_t capacity;
 };
 
+int list_configure( struct list_t *list )
+{
+	int tmp = list -> free;
+	for( int i = list -> capacity; i < list -> size - 1; i++ )
+	{
+		( list -> data )[ tmp ].prev = -1;
+		tmp = ( list -> data )[ tmp ].next;
+	}
+	( list -> data )[ tmp ].next = -1;
+	( list -> data )[ tmp ].prev = -1;
+	if( list -> capacity != 0 )
+	{
+		( list -> data )[ list -> head ].prev = -1;
+		( list -> data )[ list -> tail ].next = list -> free;
+	}
+}
+
 int list_construct( struct list_t *list )
 {
 	list -> data = ( struct list_elem * )calloc( 1, sizeof( struct list_elem ));
@@ -27,27 +44,25 @@ int list_construct( struct list_t *list )
 	list -> free = 0;
 	list -> size = 1;
 	list -> capacity = 0;
-	( list -> data )[ 0 ].prev = 0;
-	( list -> data )[ 0 ].next = 0;
+	( list -> data )[ 0 ].prev = -1;
+	( list -> data )[ 0 ].next = -1;
 }
 
 int list_resize( struct list_t *list, size_t size )
 {
 	list -> data = ( struct list_elem * )realloc( list -> data, size * sizeof( struct list_elem ) );
+	int tmp = list -> free;
+	for( int i = list -> capacity; i < list -> size - 1; i++ )
+	{
+		tmp = ( list -> data )[ tmp ].next;
+	}
+	( list -> data )[ tmp ].next = list -> size;
 	for( int i = list -> size; i < size - 1; i++ )
 	{
 		( list -> data )[ i ].next = i + 1;
-		( list -> data )[ i + 1 ].prev = i;
 	}
-	if( list -> free != -1 )
-	{
-		( list -> data )[ list -> free ].prev = size - 1;
-		( list -> data )[ size - 1 ].next = list -> free;
-	}
-	list -> free = list -> size;
-	( list -> data )[ list -> head ].prev = list -> free;
-	( list -> data )[ list -> tail ].next = list -> free;
 	list -> size = size;
+	list_configure( list );
 }
 
 int push_tail( struct list_t *list, elem_t elem )
@@ -57,13 +72,16 @@ int push_tail( struct list_t *list, elem_t elem )
 		list_resize( list, 2 * list -> size );
 	}
 	( list -> data )[ list -> free ].elem = elem;
-	( list -> data )[ list -> free ].prev = list -> tail;
+	if( list -> capacity != 0 )
+	{
+		( list -> data )[ list -> free ].prev = list -> tail;
+	}
 	list -> tail = list -> free;
 	list -> free = ( list -> data )[ list -> free ].next;
 	if( list -> capacity == list -> size )
 		list -> free = -1;
-	( list -> data )[ list -> head ].prev = list -> free;
 	( list -> data )[ list -> tail ].next = list -> free;
+	list_configure( list );
 	list -> capacity ++;
 }
 
@@ -179,28 +197,33 @@ int dumper( struct list_t *list )
 {
 	FILE *dump = fopen( "dump", "w" );
 	fprintf( dump, 	"digraph dump\n"
-			"{\n" );
+			"{\n"
+			"rankdir = LR\n");
+	int tmp = list -> head;
 	for( int i = 0; i < list -> capacity; i++ )
 	{
-		fprintf( dump, "Node%d [ shape = record, label = \"<index> index = %d | { <next> next = %d | elem = %d | <prev>  prev = %d }\" ]\n", i, i, ( list -> data )[ i ].next, ( list -> data )[ i ].elem, ( list -> data )[ i ].prev );
+		fprintf( dump, "Node%d [ shape = record, label = \"<index> index = %d | { <prev> prev = %d | elem = %d | <next> next = %d }\" ]\n", tmp, tmp, ( list -> data )[ tmp ].prev, ( list -> data )[ tmp ].elem, ( list -> data )[ tmp ].next );
+		tmp = ( list -> data )[ tmp ].next;
 	}
 
-	fprintf( dump, "Node%d [shape = record, label = \"<index> index = %d( free ) | { <next> next = %d | FREE | <prev> prev = %d }\" ]\n", list -> capacity, list -> capacity, ( list -> data )[ list -> capacity ].next, ( list -> data )[ list -> capacity ].prev );
+	fprintf( dump, "Node%d [shape = record, label = \"<index> index = %d( free ) | { <prev> prev = %d | FREE | <next> next = %d }\" ]\n", tmp, tmp, ( list -> data )[ tmp ].prev, ( list -> data )[ tmp ].next );
+	tmp = ( list -> data )[ tmp ].next;
 
 	for( int i = list -> capacity + 1; i < list -> size; i++ )
 	{
-		fprintf( dump, "Node%d [ shape = record, label = \"<index> index = %d | { <next> next = %d | FREE | <prev> prev = %d }\" ]\n", i, i, ( list -> data )[ i ].next, ( list -> data )[ i ].prev );
+		fprintf( dump, "Node%d [ shape = record, label = \"<index> index = %d | { <prev> prev = %d | FREE | <next> next = %d }\" ]\n", tmp, tmp, ( list -> data )[ tmp ].prev, ( list -> data )[ tmp ].next );
+		tmp = ( list -> data )[ tmp ].next;
 	}
 
 	for( int i = 0; i < list -> size; i++ )
 	{
 		if( ( list -> data )[ i ].next != -1 )
 		{
-			fprintf( dump, "Node%d:<next> -> Node%d:<index> [color = green]\n", i, ( list -> data )[ i ].next );
+			fprintf( dump, "Node%d -> Node%d [color = green]\n", i, ( list -> data )[ i ].next );
 		}
 		if( ( list -> data )[ i ].prev != -1 )
 		{
-			fprintf( dump, "Node%d:<prev> -> Node%d:<index> [color = blue]\n", i, ( list -> data )[ i ].prev );
+			fprintf( dump, "Node%d -> Node%d [color = blue]\n", i, ( list -> data )[ i ].prev );
 		}
 	}
 	fprintf( dump, "}" );
