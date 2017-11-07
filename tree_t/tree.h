@@ -1,9 +1,15 @@
-typedef int elem_t;
-typedef struct node_t node_t;
+#define __TREE_CHAR__
+typedef char *elem_t;
+typedef struct tree_node_t tree_node_t;
 typedef struct tree_t tree_t;
-int tree_construct( struct tree_t *tree, const int POISON );
-int add_right_node( struct tree_t *tree, struct node_t *parent );
-int add_left_node( struct tree_t *tree, struct node_t *parent );
-int change_elem( struct tree_t *tree, struct node_t *node, elem_t arg );
-int del_branch( struct tree_t *tree, struct node_t *parent );
-struct node_t *find_elem( struct node_t *root, elem_t target );
+enum side_t
+{
+	left,
+	right
+};
+int tree_construct( struct tree_t *tree, const int POISON, elem_t elem );
+struct tree_node_t *tree_add( struct tree_t *tree, struct tree_node_t *parent, enum side_t side, elem_t elem );
+int change_elem( struct tree_t *tree, struct tree_node_t *node, elem_t arg );
+int del_branch( struct tree_t *tree, struct tree_node_t *parent );
+struct tree_node_t *tree_find( struct tree_node_t *root, elem_t target );
+int dumper( struct tree_t *tree );
