@@ -126,19 +126,16 @@ struct tree_node_t *tree_find( struct tree_node_t *root, elem_t target )
 
 int dump_node( FILE *dump, struct tree_node_t *node, struct tree_node_t *parent )
 {
-
-
-
-	fprintf( dump, "Node%p [shape = record, label = \"{ %p | '%s' } | ",
+	fprintf( dump, "Node%p [shape = record, label = \"{ { %p | '%s' } | ",
 		 node, node,  node -> elem );
 	if( node -> left != NULL )
-		fprintf( dump, "left = %p ", node -> left );
+		fprintf( dump, "{ left = %p ", node -> left );
 	if( node -> left == NULL )
-		fprintf( dump, "left = NULL " );
+		fprintf( dump, "{ left = NULL " );
 	if( node -> right != NULL )
-		fprintf( dump, "| right = %p ", node -> right );
+		fprintf( dump, "| right = %p } }", node -> right );
 	if( node -> right == NULL )
-		fprintf( dump, "| right = NULL" );
+		fprintf( dump, "| right = NULL } }" );
 	fprintf( dump, "\"]\n" );
 	if( node -> left != NULL )
 		dump_node( dump, node -> left, node );

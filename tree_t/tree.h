@@ -1,5 +1,5 @@
 #define __TREE_CHAR__
-typedef char *elem_t;
+typedef char * elem_t;
 typedef struct tree_node_t tree_node_t;
 typedef struct tree_t tree_t;
 enum side_t
