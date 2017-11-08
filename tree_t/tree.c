@@ -12,7 +12,7 @@ struct tree_node_t
 
 struct tree_t
 {
-	int POISON_val;
+	elem_t POISON_val;
 	size_t size;
 	struct tree_node_t *root;
 };
@@ -21,6 +21,11 @@ struct tree_t
 size_t tree_node_sz( elem_t elem )
 {
 	size_t sz = 3 * sizeof( struct tree_node_t * ) + strlen( elem );
+	return sz;
+}
+size_t tree_sz( size_t root_sz, elem_t POISON )
+{
+	size_t sz = strlen( POISON ) + root_sz;
 	return sz;
 }
 #endif
@@ -36,12 +41,15 @@ struct tree_node_t *tree_node_construct( struct tree_t *tree, struct tree_node_t
 	return node;
 }
 
-int tree_construct( struct tree_t *tree, const int POISON, elem_t elem )
+struct tree_node_t *tree_construct( struct tree_t **tree, elem_t POISON, elem_t elem )
 {
-	tree -> POISON_val = POISON;
-	tree -> size = 0;
-	size_t sz = tree_node_sz( elem );
-	tree -> root = tree_node_construct( tree, NULL, elem, sz );
+	size_t root_sz = tree_node_sz( elem );
+	size_t sz = tree_sz( root_sz, POISON );
+	*tree = ( struct tree_t * )calloc( 1, sz );
+	( *tree ) -> POISON_val = POISON;
+	( *tree ) -> size = 0;
+	( *tree ) -> root = tree_node_construct( *tree, NULL, elem, root_sz );
+	return ( *tree ) -> root;
 }
 
 struct tree_node_t *tree_add( struct tree_t *tree, struct tree_node_t *parent, enum side_t side, elem_t elem )
@@ -83,37 +91,39 @@ struct tree_node_t *tree_find( struct tree_node_t *root, elem_t target )
 // man exec
 // f(p)ork()
 
-
-/*int dump_node( FILE *dump, struct tree_node_t *node, int num )
+struct tree_node_t *tree_find_start( struct tree_t *tree )
 {
-	fprintf( dump, "Node%d [shape = record, label = \"%s\n%p | ",
-		 num, node -> elem, node );
+
+}
+
+int dump_node( FILE *dump, struct tree_node_t *node, struct tree_node_t *parent )
+{
+
+
+
+	fprintf( dump, "Node%p [shape = record, label = \"{ '%s' | %p } | ",
+		 node, node -> elem, node );
 	if( node -> left != NULL )
-		fprintf( dump, "{ left = %p\n%s ", node -> left, node -> left -> elem );
+		fprintf( dump, "{ '%s' | left = %p } ", node -> left -> elem, node -> left );
 	if( node -> left == NULL )
-		fprintf( dump, "{ left = NULL " );
+		fprintf( dump, "left = NULL " );
 	if( node -> right != NULL )
-		fprintf( dump, "| right = %p\n%s }", node -> right, node -> right -> elem );
+		fprintf( dump, "| { '%s' | right = %p }", node -> right -> elem, node -> right );
 	if( node -> right == NULL )
-		fprintf( dump, "| right = NULL }" );
+		fprintf( dump, "| right = NULL" );
 	fprintf( dump, "\"]\n" );
 	if( node -> left != NULL )
-		dump_node( dump, node -> left, num++ );
+		dump_node( dump, node -> left, node );
 	if( node -> right != NULL )
-		dump_node( dump, node -> right, num =++ );
+		dump_node( dump, node -> right, node );
 }
 
 int dumper( struct tree_t *tree )
 {
 	FILE *dump = fopen( "dump", "w" );
 	fprintf( dump, "digraph dump\n"
-			"{\n"
-	int num = 0;
-	if( root != NULL )
-		dump_node( dump, root, num++ );
-	for( int i = 0; i < num; i++ )
-	{
-		
-	}
+			"{\n" );
+	if( tree -> root != NULL )
+		dump_node( dump, tree -> root, NULL );
+	fprintf( dump, "}" );
 }
-*/
