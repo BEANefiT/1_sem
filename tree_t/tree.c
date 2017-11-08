@@ -28,7 +28,18 @@ size_t tree_sz( size_t root_sz, elem_t POISON )
 	size_t sz = strlen( POISON ) + root_sz;
 	return sz;
 }
-#endif
+#else
+size_t tree_node_sz( elem_t elem )
+{
+	size_t sz = 3 * sizeof( struct tree_node_t * ) + sizeof( elem_t );
+	return sz;
+}
+size_t tree_sz( size_t root_sz, elem_t POISON )
+{
+	size_t sz = root_sz + sizeof( elem_t );
+	return sz;
+}
+#endif /*__TREE_CHAR__*/
 
 struct tree_node_t *tree_node_construct( struct tree_t *tree, struct tree_node_t *parent, elem_t elem, size_t sz )
 {
@@ -56,9 +67,15 @@ struct tree_node_t *tree_add( struct tree_t *tree, struct tree_node_t *parent, e
 {
 	size_t sz = tree_node_sz( elem );
 	if( side == left )
+	{
 		parent -> left = tree_node_construct( tree, parent, elem, sz );
+		return parent -> left;
+	}
 	if( side == right )
+	{
 		parent -> right = tree_node_construct( tree, parent, elem, sz );
+		return parent -> right;
+	}
 
 }
 
@@ -69,11 +86,16 @@ int change_elem( struct tree_t *tree, struct tree_node_t *node, elem_t arg )
 
 int del_branch( struct tree_t *tree, struct tree_node_t *parent )
 {
+	if( parent -> parent -> left == parent )
+		parent -> parent -> left = NULL;
+	if( parent -> parent -> right == parent )
+		parent -> parent -> right = NULL;
 	if( parent -> left != NULL )
 		del_branch( tree, parent -> left );
 	if( parent -> right != NULL )
 		del_branch( tree, parent -> right );
 	free( parent );
+	parent = NULL;
 	tree -> size --;
 }
 
@@ -101,14 +123,14 @@ int dump_node( FILE *dump, struct tree_node_t *node, struct tree_node_t *parent 
 
 
 
-	fprintf( dump, "Node%p [shape = record, label = \"{ '%s' | %p } | ",
-		 node, node -> elem, node );
+	fprintf( dump, "Node%p [shape = record, label = \"{ %p | '%s' } | ",
+		 node, node,  node -> elem );
 	if( node -> left != NULL )
-		fprintf( dump, "{ '%s' | left = %p } ", node -> left -> elem, node -> left );
+		fprintf( dump, "left = %p ", node -> left );
 	if( node -> left == NULL )
 		fprintf( dump, "left = NULL " );
 	if( node -> right != NULL )
-		fprintf( dump, "| { '%s' | right = %p }", node -> right -> elem, node -> right );
+		fprintf( dump, "| right = %p ", node -> right );
 	if( node -> right == NULL )
 		fprintf( dump, "| right = NULL" );
 	fprintf( dump, "\"]\n" );
@@ -116,6 +138,8 @@ int dump_node( FILE *dump, struct tree_node_t *node, struct tree_node_t *parent 
 		dump_node( dump, node -> left, node );
 	if( node -> right != NULL )
 		dump_node( dump, node -> right, node );
+	if( parent != NULL )
+		fprintf( dump, "Node%p -> Node%p\n", parent, node );
 }
 
 int dumper( struct tree_t *tree )
