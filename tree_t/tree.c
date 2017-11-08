@@ -104,19 +104,25 @@ struct tree_node_t *tree_find( struct tree_node_t *root, elem_t target )
 	if( root -> elem == target )
 		return root;
 	if( root -> left != NULL )
-		root = tree_find( root -> left, target );
+	{
+		struct tree_node_t *newroot = root;
+		newroot = tree_find( newroot -> left, target );
+		if( newroot != NULL )
+			return newroot;
+	}
 	if( root -> right != NULL )
-		root = tree_find( root -> right, target );
+	{
+		struct tree_node_t *newroot = root;
+		newroot = tree_find( newroot -> right, target );
+		if( newroot != NULL )
+			return newroot;
+	}
+	return NULL;
 }
 
 
 // man exec
 // f(p)ork()
-
-struct tree_node_t *tree_find_start( struct tree_t *tree )
-{
-
-}
 
 int dump_node( FILE *dump, struct tree_node_t *node, struct tree_node_t *parent )
 {
