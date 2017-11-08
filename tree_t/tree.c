@@ -79,7 +79,7 @@ struct tree_node_t *tree_add( struct tree_t *tree, struct tree_node_t *parent, e
 
 }
 
-int change_elem( struct tree_t *tree, struct tree_node_t *node, elem_t arg )
+int change_elem( struct tree_node_t *node, elem_t arg )
 {
 	node -> elem = arg;
 }
