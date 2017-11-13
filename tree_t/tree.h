@@ -13,3 +13,7 @@ int change_elem( struct tree_node_t *node, elem_t arg );
 int del_branch( struct tree_t *tree, struct tree_node_t *parent );
 struct tree_node_t *tree_find( struct tree_node_t *root, elem_t target );
 int dumper( struct tree_t *tree );
+elem_t tree_get_elem( struct tree_node_t *node );
+struct tree_node_t *tree_get_next( struct tree_node_t *node, enum side_t side );
+struct tree_node_t *tree_get_parent( struct tree_node_t *node );
+struct tree_node_t *tree_get_root( struct tree_t *tree );

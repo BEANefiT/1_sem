@@ -120,13 +120,35 @@ struct tree_node_t *tree_find( struct tree_node_t *root, elem_t target )
 	return NULL;
 }
 
+elem_t tree_get_elem( struct tree_node_t *node )
+{
+	return node -> elem;
+}
+
+struct tree_node_t *tree_get_next( struct tree_node_t *node, enum side_t side )
+{
+	if( side == left )
+		return node -> left;
+	if( side == right )
+		return node -> right;
+	return NULL;
+}
+
+struct tree_node_t *tree_get_parent( struct tree_node_t *node )
+{
+	return node -> parent;
+}
+
+struct tree_node_t *tree_get_root( struct tree_t *tree )
+{
+	return tree -> root;
+}
 
 // man exec
 // f(p)ork()
 
 int dump_node( FILE *dump, struct tree_node_t *node, struct tree_node_t *parent )
 {
-
 
 
 	fprintf( dump, "Node%p [shape = record, label = \"{ %p | '%s' } | ",

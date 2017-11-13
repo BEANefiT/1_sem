@@ -9,7 +9,8 @@ int main( int argc, char *argv[] )
 	aki_constr( &akinator );
 	akinator.src = getsrc( argv[ 1 ], &akinator );
 	make_tree( &akinator );
-	//dumper( akinator.tree );
+	start( &akinator );
+	dumper( akinator.tree );
 	return 0;
 }
 
@@ -52,9 +53,7 @@ int make_node( struct aki_structure *akinator, struct tree_node_t *node )
 	{ 
 		sscanf( akinator -> src + akinator -> src_cur, "\'%[^\']\'%n", str, &src_cur_delta );
 		akinator -> src_cur += src_cur_delta;
-		printf( "'%s'\n", str );
 		make_node( akinator, tree_add( akinator -> tree, node, left, str ) );
-		free( str );
 	}
 	if( tmp == ')' )
 	{
@@ -69,16 +68,13 @@ int make_node( struct aki_structure *akinator, struct tree_node_t *node )
 	{
 		sscanf( akinator -> src + akinator -> src_cur, "\'%[^\']\'%n", str, &src_cur_delta );
 		akinator -> src_cur += src_cur_delta;
-		printf( "'%s'\n", str );
 		make_node( akinator, tree_add( akinator -> tree, node, right, str ) );
-		free( str );
 	}
 	str = ( char * )calloc( 99, sizeof( char ) );
 	sscanf( akinator -> src + akinator -> src_cur, "%[^()]%n", str, &src_cur_delta );
 	akinator -> src_cur += src_cur_delta;
 	sscanf( akinator -> src + akinator -> src_cur, "%c", &tmp );
 	akinator -> src_cur ++;
-	free( str );
 	if( tmp == ')' )
 	{
 		return 0;
@@ -87,11 +83,64 @@ int make_node( struct aki_structure *akinator, struct tree_node_t *node )
 
 int make_tree( struct aki_structure *akinator )
 {
-	char str[ 99 ] = {};
+	char *str = ( char * )calloc( 99, sizeof( char ) );
 	size_t src_cur_delta = 0;
 	sscanf( akinator -> src + akinator -> src_cur, "\'%[^\']\'%n", str, &src_cur_delta );
 	akinator -> src_cur += src_cur_delta;
-	struct tree_node_t *root = tree_construct( &( akinator -> tree ), "POISON", str );
-	make_node( akinator, root );
-	dumper( akinator -> tree );
+	str = ( char * )realloc( str, src_cur_delta );
+	make_node( akinator, tree_construct( &( akinator -> tree ), "POISON", str ) );
+}
+
+char get_answer()
+{
+	char answer = ' ';
+	scanf( "%c", &answer );
+	if( answer == 'y' || answer == 'Y' || answer == '+' )
+		return 'y';
+	if( answer == 'n' || answer == 'N' || answer == '-' )
+		return 'n';
+	char tmp = get_answer();
+	return tmp;
+}
+
+int ask( tree_node_t *current, tree_node_t **end )
+{
+	if( tree_get_next( current, left ) != NULL && tree_get_next( current, right ) != NULL )
+	{
+		printf( "%s? ((y)es/(n)o)\n", tree_get_elem( current ) );
+		char answer = get_answer();
+		if( answer == 'n' )
+			ask( tree_get_next( current, left ), end );
+		if( answer == 'y' )
+			ask( tree_get_next( current, right ), end );
+	}
+	else
+	{
+		printf( "This is %s? ((y)es/(n)o)\n", tree_get_elem( current ) );
+		*end = current;
+	}
+}
+
+int start( struct aki_structure *akinator )
+{
+	struct tree_node_t *end = NULL;
+	ask( tree_get_root( akinator -> tree ), &end );
+	char answer = get_answer();
+	if( answer == 'y' )
+	{
+		printf( "ok\n" );
+		return 0;
+	}
+	if( answer == 'n' )
+	{
+		printf( "What is it?\n" );
+		char *str = ( char *)calloc( 99, sizeof( char ) );
+		scanf( "%s", str );
+		tree_add( akinator -> tree, end, left, tree_get_elem( end ) );
+		tree_add( akinator -> tree, end, right, str );
+		printf( "What differs %s from %s\n", str, tree_get_elem( end ) );
+		char *differ = ( char * )calloc( 99, sizeof( char ) );
+		scanf( "%s", differ );
+		change_elem( end, differ );
+	}
 }
