@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "./../log/log.h"
 #include "tree.h"
 struct tree_node_t
 {
@@ -12,7 +13,6 @@ struct tree_node_t
 
 struct tree_t
 {
-	elem_t POISON_val;
 	size_t size;
 	struct tree_node_t *root;
 };
@@ -23,27 +23,31 @@ size_t tree_node_sz( elem_t elem )
 	size_t sz = 3 * sizeof( struct tree_node_t * ) + strlen( elem );
 	return sz;
 }
-size_t tree_sz( size_t root_sz, elem_t POISON )
-{
-	size_t sz = strlen( POISON ) + root_sz;
-	return sz;
-}
 #else
 size_t tree_node_sz( elem_t elem )
 {
 	size_t sz = 3 * sizeof( struct tree_node_t * ) + sizeof( elem_t );
 	return sz;
 }
-size_t tree_sz( size_t root_sz, elem_t POISON )
-{
-	size_t sz = root_sz + sizeof( elem_t );
-	return sz;
-}
 #endif /*__TREE_CHAR__*/
 
 struct tree_node_t *tree_node_construct( struct tree_t *tree, struct tree_node_t *parent, elem_t elem, size_t sz )
 {
+	if( tree == NULL )
+	{
+		print_log( "ERROR: TRYING TO NODE_CONSTR FOR NO TREE\n" );
+		return NULL;
+	}
+	if( parent == NULL )
+	{
+		print_log( "ERROR: TRYING TO NODE_CONSTR FOR NO PARENT\n" );
+	}
 	struct tree_node_t *node = ( struct tree_node_t * )calloc( 1, sz );
+	if( node == NULL )
+	{
+		print_log( "ERROR: CANT ALLOCATE THE MEMORY\n" );
+		return NULL;
+	}
 	node -> elem = elem;
 	node -> parent = parent;
 	node -> left = NULL;
@@ -52,12 +56,17 @@ struct tree_node_t *tree_node_construct( struct tree_t *tree, struct tree_node_t
 	return node;
 }
 
-struct tree_node_t *tree_construct( struct tree_t **tree, elem_t POISON, elem_t elem )
+struct tree_node_t *tree_construct( struct tree_t **tree, elem_t elem )
 {
+	check_pointer( tree, NULL );
 	size_t root_sz = tree_node_sz( elem );
-	size_t sz = tree_sz( root_sz, POISON );
-	*tree = ( struct tree_t * )calloc( 1, sz );
-	( *tree ) -> POISON_val = POISON;
+	*tree = ( struct tree_t * )calloc( 1, root_sz );
+	if( *tree == NULL )
+	{
+		print_log( "ERROR: CANT ALLOCATE THE MEMORY FOR TREE_CONSTR\n" );
+		error = BAD_ALLOC;
+		return NULL;
+	}
 	( *tree ) -> size = 0;
 	( *tree ) -> root = tree_node_construct( *tree, NULL, elem, root_sz );
 	return ( *tree ) -> root;
@@ -65,6 +74,14 @@ struct tree_node_t *tree_construct( struct tree_t **tree, elem_t POISON, elem_t 
 
 struct tree_node_t *tree_add( struct tree_t *tree, struct tree_node_t *parent, enum side_t side, elem_t elem )
 {
+	check_pointer( tree, NULL );
+	check_pointer( parent, NULL );
+	if( side != left && side != right )
+	{
+		print_log( "ERROR: FALSE SIDE\n" );
+		error = UNEXPECTED;
+		return NULL;
+	}
 	size_t sz = tree_node_sz( elem );
 	if( side == left )
 	{
@@ -81,11 +98,14 @@ struct tree_node_t *tree_add( struct tree_t *tree, struct tree_node_t *parent, e
 
 int change_elem( struct tree_node_t *node, elem_t arg )
 {
+	check_pointer( node, 0 );
 	node -> elem = arg;
 }
 
 int del_branch( struct tree_t *tree, struct tree_node_t *parent )
 {
+	check_pointer( tree, 0 );
+	check_pointer( parent, 0 );
 	if( parent -> parent -> left == parent )
 		parent -> parent -> left = NULL;
 	if( parent -> parent -> right == parent )
@@ -101,6 +121,7 @@ int del_branch( struct tree_t *tree, struct tree_node_t *parent )
 
 struct tree_node_t *tree_find( struct tree_node_t *root, elem_t target )
 {
+	check_pointer( root, NULL );
 	if( root -> elem == target )
 		return root;
 	if( root -> left != NULL )
@@ -122,11 +143,18 @@ struct tree_node_t *tree_find( struct tree_node_t *root, elem_t target )
 
 elem_t tree_get_elem( struct tree_node_t *node )
 {
-	return node -> elem;
+	if( node != NULL )
+		return node -> elem;
+	else
+	{
+		print_log( "ERROR: *node = NULL\n" );
+		error = BAD_ARG;
+	}
 }
 
 struct tree_node_t *tree_get_next( struct tree_node_t *node, enum side_t side )
 {
+	check_pointer( node, NULL );
 	if( side == left )
 		return node -> left;
 	if( side == right )
@@ -136,11 +164,13 @@ struct tree_node_t *tree_get_next( struct tree_node_t *node, enum side_t side )
 
 struct tree_node_t *tree_get_parent( struct tree_node_t *node )
 {
+	check_pointer( node, NULL );
 	return node -> parent;
 }
 
 struct tree_node_t *tree_get_root( struct tree_t *tree )
 {
+	check_pointer( tree, NULL );
 	return tree -> root;
 }
 
@@ -172,6 +202,7 @@ int dump_node( FILE *dump, struct tree_node_t *node, struct tree_node_t *parent 
 
 int dumper( struct tree_t *tree )
 {
+	check_pointer( tree, 0 );
 	FILE *dump = fopen( "dump", "w" );
 	fprintf( dump, "digraph dump\n"
 			"{\n" );

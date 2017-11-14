@@ -1,16 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
+#define __TREE_CHAR__
+#include "./../log/log.h"
 #include "./../tree_t/tree.h"
 #include "akinator.h"
 
 int main( int argc, char *argv[] )
 {
+	log_constr();
 	struct aki_structure akinator;
 	aki_constr( &akinator );
 	akinator.src = getsrc( argv[ 1 ], &akinator );
 	make_tree( &akinator );
 	start( &akinator );
-	dumper( akinator.tree );
+	Do( dumper( akinator.tree ) );
+	log_destr();
 	return 0;
 }
 
@@ -53,7 +57,9 @@ int make_node( struct aki_structure *akinator, struct tree_node_t *node )
 	{ 
 		sscanf( akinator -> src + akinator -> src_cur, "\'%[^\']\'%n", str, &src_cur_delta );
 		akinator -> src_cur += src_cur_delta;
-		make_node( akinator, tree_add( akinator -> tree, node, left, str ) );
+		tree_node_t *newnode = NULL;
+		Do( newnode = tree_add( akinator -> tree, node, left, str ) );
+		make_node( akinator, newnode );
 	}
 	if( tmp == ')' )
 	{
@@ -68,7 +74,9 @@ int make_node( struct aki_structure *akinator, struct tree_node_t *node )
 	{
 		sscanf( akinator -> src + akinator -> src_cur, "\'%[^\']\'%n", str, &src_cur_delta );
 		akinator -> src_cur += src_cur_delta;
-		make_node( akinator, tree_add( akinator -> tree, node, right, str ) );
+		tree_node_t *newnode = NULL;
+		Do( newnode = tree_add( akinator -> tree, node, right, str ) );
+		make_node( akinator, newnode );
 	}
 	str = ( char * )calloc( 99, sizeof( char ) );
 	sscanf( akinator -> src + akinator -> src_cur, "%[^()]%n", str, &src_cur_delta );
@@ -88,7 +96,9 @@ int make_tree( struct aki_structure *akinator )
 	sscanf( akinator -> src + akinator -> src_cur, "\'%[^\']\'%n", str, &src_cur_delta );
 	akinator -> src_cur += src_cur_delta;
 	str = ( char * )realloc( str, src_cur_delta );
-	make_node( akinator, tree_construct( &( akinator -> tree ), "POISON", str ) );
+	tree_node_t *root = NULL;
+	Do( root = tree_construct( &( akinator -> tree ), str ) );
+	make_node( akinator, root );
 }
 
 char get_answer()

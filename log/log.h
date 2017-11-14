@@ -31,8 +31,8 @@ do									\
 #define Do( func )                            	\
 do                                		\
 {        					\
-	print_log( "doing '"#func"'\n" );	\
 	func;                      		\
+	print_log( "doing '"#func"'\n" );	\
   	if( error == noerror )         		\
       		print_log( "ok\n" );		\
 	else					\
@@ -45,7 +45,8 @@ enum error_t
 	BAD_ARG,
 	EMPTY_STACK,
 	UNEXPECTED,
-	FATAL
+	FATAL,
+	BAD_ALLOC
 };
 
 enum log_err_t
