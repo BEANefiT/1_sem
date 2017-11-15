@@ -39,6 +39,17 @@ do                                		\
 		ERROR( error );			\
 } while( 0 )
 
+#define check_pointer( pointer, func_type )			\
+do								\
+{								\
+	if( pointer == NULL )					\
+	{							\
+		print_log( "ERROR: *"#pointer" = NULL\n" );	\
+		error = BAD_ARG;				\
+		return func_type;				\
+	}							\
+} while( 0 )
+
 enum error_t
 {
 	noerror,

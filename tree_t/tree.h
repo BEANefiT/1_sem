@@ -18,14 +18,3 @@ elem_t tree_get_elem( struct tree_node_t *node );
 struct tree_node_t *tree_get_next( struct tree_node_t *node, enum side_t side );
 struct tree_node_t *tree_get_parent( struct tree_node_t *node );
 struct tree_node_t *tree_get_root( struct tree_t *tree );
-
-#define check_pointer( pointer, func_type )			\
-do								\
-{								\
-	if( pointer == NULL )					\
-	{							\
-		print_log( "ERROR: *"#pointer" = NULL\n" );	\
-		error = BAD_ARG;				\
-		return func_type;				\
-	}							\
-} while( 0 )

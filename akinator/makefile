@@ -1,6 +1,7 @@
 CC=gcc
 CFLAGS=-I./../tree_t/ -I./../stack_t/ -I./../log/
 TARGETS=./../akinator.o ./../log.o ./../stack.o ./../tree.o
+all: Akinator
 log.o: ./../log/log.c ./../log/log.h
 				$(MAKE) -C ./../log
 tree.o: ./../tree_t/tree.c ./../tree_t/tree.h ./../log.o
