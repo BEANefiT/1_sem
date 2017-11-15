@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "./../log/log.h"
+#include <log.h>
 #include "tree.h"
 struct tree_node_t
 {
@@ -23,11 +23,24 @@ size_t tree_node_sz( elem_t elem )
 	size_t sz = 3 * sizeof( struct tree_node_t * ) + strlen( elem );
 	return sz;
 }
+
+int cmp( elem_t elem, elem_t target )
+{
+	return strcmp( elem, target );
+}
 #else
 size_t tree_node_sz( elem_t elem )
 {
 	size_t sz = 3 * sizeof( struct tree_node_t * ) + sizeof( elem_t );
 	return sz;
+}
+
+int cmp( elem_t elem, elem_t target )
+{
+	if( elem == target )
+		return 0;
+	if( elem != target )
+		return 1;
 }
 #endif /*__TREE_CHAR__*/
 
@@ -122,19 +135,19 @@ int del_branch( struct tree_t *tree, struct tree_node_t *parent )
 struct tree_node_t *tree_find( struct tree_node_t *root, elem_t target )
 {
 	check_pointer( root, NULL );
-	if( root -> elem == target )
+	if( !cmp( root -> elem, target ) )
+	{
 		return root;
+	}
 	if( root -> left != NULL )
 	{
-		struct tree_node_t *newroot = root;
-		newroot = tree_find( newroot -> left, target );
+		struct tree_node_t *newroot = tree_find( root -> left, target );
 		if( newroot != NULL )
 			return newroot;
 	}
 	if( root -> right != NULL )
 	{
-		struct tree_node_t *newroot = root;
-		newroot = tree_find( newroot -> right, target );
+		struct tree_node_t *newroot = tree_find( root -> right, target );
 		if( newroot != NULL )
 			return newroot;
 	}

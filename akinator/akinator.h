@@ -10,3 +10,6 @@ char *getsrc( char *src_name, struct aki_structure *akinator );
 size_t src_sz( FILE *src );
 int make_tree( struct aki_structure *akinator );
 int start( struct aki_structure *akinator );
+int base_edit( struct aki_structure *akinator, char *base_name );
+int determine( struct aki_structure *akinator );
+int get_command( struct aki_structure *akinator, char *base_name );
