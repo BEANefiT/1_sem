@@ -6,6 +6,8 @@
 #include "akinator.h"
 #include <stack.h>
 
+const int MAX_PHRASE_LENGTH = 37;
+
 int main( int argc, char *argv[] )
 {
 	log_constr();
@@ -110,56 +112,66 @@ int get_command( struct aki_structure *akinator, char *base_name )
 		return 1;
 }
 
+int read_base( struct aki_structure *akinator, char *tmp )
+{
+	char *str = ( char * )calloc( MAX_PHRASE_LENGTH, sizeof( char ) );
+	size_t src_cur_delta = 0;
+
+	sscanf( akinator -> src + akinator -> src_cur, "%[^()]%n", str, &src_cur_delta );
+	akinator -> src_cur += src_cur_delta;
+	sscanf( akinator -> src + akinator -> src_cur, "%c", tmp );
+	akinator -> src_cur ++;
+
+	free( str );
+}
+
+int read_base_elem( struct aki_structure *akinator, struct tree_node_t *node, enum side_t side );
+
 int make_node( struct aki_structure *akinator, struct tree_node_t *node )
 {
 	check_pointer( akinator, 1 );
 	check_pointer( node, 1 );
 
-	char *str = ( char * )calloc( 99, sizeof( char ) );
-	size_t src_cur_delta = 0;
-	sscanf( akinator -> src + akinator -> src_cur, "%[^()]%n", str, &src_cur_delta );
-	akinator -> src_cur += src_cur_delta;
+
 	char tmp = ' ';
-	sscanf( akinator -> src + akinator -> src_cur, "%c", &tmp );
-	akinator -> src_cur ++;
+
+	read_base( akinator, &tmp );
 	if( tmp == '(' )
 	{ 
-		sscanf( akinator -> src + akinator -> src_cur, "\'%[^\']\'%n", str, &src_cur_delta );
-		akinator -> src_cur += src_cur_delta;
-		Do( make_node( akinator, tree_add( akinator -> tree, node, left, str ) ) );
+		read_base_elem( akinator, node, left );
 	}
 	if( tmp == ')' )
 	{
 		return 0;
 	}
-	str = ( char * )calloc( 99, sizeof( char ) );
-	sscanf( akinator -> src + akinator -> src_cur, "%[^()]%n", str, &src_cur_delta );
-	akinator -> src_cur += src_cur_delta;
-	sscanf( akinator -> src + akinator -> src_cur, "%c", &tmp );
-	akinator -> src_cur ++;
+
+	read_base( akinator, &tmp );
 	if( tmp == '(' )
 	{
-		sscanf( akinator -> src + akinator -> src_cur, "\'%[^\']\'%n", str, &src_cur_delta );
-		akinator -> src_cur += src_cur_delta;
-		tree_node_t *newnode = NULL;
-		Do( make_node( akinator, tree_add( akinator -> tree, node, right, str ) ) );
+		read_base_elem( akinator, node, right );
 	}
-	str = ( char * )calloc( 99, sizeof( char ) );
-	sscanf( akinator -> src + akinator -> src_cur, "%[^()]%n", str, &src_cur_delta );
-	akinator -> src_cur += src_cur_delta;
-	sscanf( akinator -> src + akinator -> src_cur, "%c", &tmp );
-	akinator -> src_cur ++;
+
+	read_base( akinator, &tmp );
 	if( tmp == ')' )
 	{
 		return 0;
 	}
 }
 
+int read_base_elem( struct aki_structure *akinator, struct tree_node_t *node, enum side_t side )
+{
+	char *str = ( char * )calloc( MAX_PHRASE_LENGTH, sizeof( char ) );
+	size_t src_cur_delta = 0;
+	sscanf( akinator -> src + akinator -> src_cur, "\'%[^\']\'%n", str, &src_cur_delta );
+	akinator -> src_cur += src_cur_delta;
+	Do( make_node( akinator, tree_add( akinator -> tree, node, side, str ) ) );
+}
+
 int make_tree( struct aki_structure *akinator )
 {
 	check_pointer( akinator, 1 );
 
-	char *str = ( char * )calloc( 99, sizeof( char ) );
+	char *str = ( char * )calloc( MAX_PHRASE_LENGTH, sizeof( char ) );
 	size_t src_cur_delta = 0;
 	sscanf( akinator -> src + akinator -> src_cur, "\'%[^\']\'%n", str, &src_cur_delta );
 	akinator -> src_cur += src_cur_delta;
@@ -215,12 +227,19 @@ int start( struct aki_structure *akinator )
 	if( answer == 'n' )
 	{
 		printf( "What is it?\n" );
-		char *str = ( char *)calloc( 99, sizeof( char ) );
-		scanf( "%s", str );
+
+		char *strtmp = ( char * )calloc( 5, sizeof( char ) );
+		fgets( strtmp, MAX_PHRASE_LENGTH, stdin );
+		free( strtmp );
+
+		char *str = ( char *)calloc( MAX_PHRASE_LENGTH, sizeof( char ) );
+		fgets( str, MAX_PHRASE_LENGTH, stdin );
+		str[ strlen( str ) - 1 ] = '\0';
+
 		Do( tree_add( akinator -> tree, end, left, tree_get_elem( end ) ) );
 		Do( tree_add( akinator -> tree, end, right, str ) );
 		Do( printf( "What differs %s from %s\n", str, tree_get_elem( end ) ) );
-		char *differ = ( char * )calloc( 99, sizeof( char ) );
+		char *differ = ( char * )calloc( MAX_PHRASE_LENGTH, sizeof( char ) );
 		scanf( "%s", differ );
 		Do( change_elem( end, differ ) );
 	}
@@ -263,7 +282,7 @@ int determine( struct aki_structure *akinator )
 	check_pointer( akinator, 1 );
 
 	printf( "Type character\n" );
-	char *name = ( char * )calloc( 50, sizeof( char ) );
+	char *name = ( char * )calloc( MAX_PHRASE_LENGTH, sizeof( char ) );
 	scanf( "%s", name );
 	struct tree_node_t *object;
 	Do( object = tree_find( tree_get_root( akinator -> tree ), name ) );
