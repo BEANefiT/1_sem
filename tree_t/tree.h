@@ -1,20 +1,51 @@
-#define __TREE_CHAR__
-typedef char *elem_t;
-
 typedef struct tree_node_t tree_node_t;
 typedef struct tree_t tree_t;
+typedef int ( *print_function )( void *elem );
+typedef int ( *cmp_function )( void *elem1, void *elem2 );
+
+#define tree( type, name )		\
+struct tree_t *name;			\
+name -> elem_sz = sizeof( type );
+
 enum side_t
 {
 	left,
 	right
 };
-struct tree_node_t *tree_construct( struct tree_t **tree, elem_t elem );
-struct tree_node_t *tree_add( struct tree_t *tree, struct tree_node_t *parent, enum side_t side, elem_t elem );
-int change_elem( struct tree_node_t *node, elem_t arg );
+struct tree_node_t *tree_construct( struct tree_t *tree, void *elem, print_function print_f, cmp_function cmp_f );
+struct tree_node_t *tree_add( struct tree_t *tree, struct tree_node_t *parent, enum side_t side, void *elem );
+int change_elem( struct tree_t *tree, struct tree_node_t *node, void *arg );
 int del_branch( struct tree_t *tree, struct tree_node_t *parent );
-struct tree_node_t *tree_find( struct tree_node_t *root, elem_t target );
+struct tree_node_t *tree_find( struct tree_t *tree, struct tree_node_t *root, void *target );
 int dumper( struct tree_t *tree );
-elem_t tree_get_elem( struct tree_node_t *node );
+int tree_get_elem( struct tree_t *tree, void *dest, struct tree_node_t *node );
 struct tree_node_t *tree_get_next( struct tree_node_t *node, enum side_t side );
 struct tree_node_t *tree_get_parent( struct tree_node_t *node );
 struct tree_node_t *tree_get_root( struct tree_t *tree );
+
+#define default_func( tp, type )			\
+int print_##type( void *elem )				\
+{							\
+	printf( "%"#tp, *( type * )elem );		\
+}							\
+int cmp_##type( void *elem1, void *elem2 )		\
+{							\
+	return *( type * )elem1 - *( type * )elem2;	\
+}
+
+default_func( d, int );
+default_func( lg, double );
+default_func( g, float );
+default_func( zd, size_t );
+default_func( c, char );
+
+int print_string( void *elem )
+{
+	printf( "%s", *( char ** )elem );
+}
+int cmp_string( void *elem1, void *elem2 )
+{
+	return strcmp( *( char ** )elem1, *( char ** )elem2 );
+}
+
+#undef default_func
