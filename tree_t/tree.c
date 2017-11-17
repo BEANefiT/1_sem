@@ -46,14 +46,15 @@ struct tree_node_t *tree_node_construct( struct tree_t *tree, struct tree_node_t
 	return node;
 }
 
-struct tree_node_t *tree_construct( struct tree_t *tree, void *elem, print_function print_f, cmp_function cmp_f )
+struct tree_t *tree_construct( int sz, print_function print_f, cmp_function cmp_f )
 {
-	tree -> comparer = cmp_f;
+	struct tree_t *tree = ( struct tree_t * )calloc( 1, sizeof( struct tree_t ) );
 	tree -> printer = print_f;
-	check_pointer( tree, NULL );
+	tree -> comparer = cmp_f;
+	tree -> elem_sz = sz;
 	tree -> size = 0;
-	tree -> root = tree_node_construct( tree, NULL, elem );
-	return tree -> root;
+	tree -> root = ( struct tree_node_t * )calloc( 1, sizeof( struct tree_node_t ) );
+	return tree;
 }
 
 struct tree_node_t *tree_add( struct tree_t *tree, struct tree_node_t *parent, enum side_t side, void *elem )
@@ -126,12 +127,10 @@ struct tree_node_t *tree_find( struct tree_t *tree, struct tree_node_t *root, vo
 	return NULL;
 }
 
-int tree_get_elem( struct tree_t *tree, void *dest, struct tree_node_t *node )
+void *tree_get_elem( struct tree_node_t *node )
 {
-	check_pointer( tree, 1 );
-	check_pointer( dest, 1 );
-	check_pointer( node, 1 );
-	memcpy( dest, node -> elem, tree -> elem_sz );
+	check_pointer( node, NULL );
+	return node -> elem;
 }
 
 struct tree_node_t *tree_get_next( struct tree_node_t *node, enum side_t side )
