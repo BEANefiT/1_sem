@@ -189,3 +189,8 @@ int dumper( struct tree_t *tree )
 		dump_node( dump, tree, tree -> root, NULL );
 	fprintf( dump, "}" );
 }
+
+int tree_print( struct tree_t *tree, void *elem )
+{
+	tree -> printer( elem );
+}

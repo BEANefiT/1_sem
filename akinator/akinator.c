@@ -178,8 +178,8 @@ int make_tree( struct aki_structure *akinator )
 	str = ( char * )realloc( str, src_cur_delta );
 	tree_create( char *, tree, string );
 	akinator -> tree = tree;
-	change_elem( akinator -> tree, akinator -> tree -> root, &str );
-	Do( make_node( akinator, akinator -> tree -> root ) );
+	change_elem( akinator -> tree, tree_get_root( akinator -> tree ), &str );
+	Do( make_node( akinator, tree_get_root( akinator -> tree ) ) );
 }
 
 char get_answer()
@@ -201,7 +201,7 @@ int ask( struct tree_t *tree, struct tree_node_t *current, struct tree_node_t **
 
 	if( tree_get_next( current, left ) != NULL && tree_get_next( current, right ) != NULL )
 	{
-		tree -> printer( tree_get_elem( current ) );
+		tree_print( tree, tree_get_elem( current ) );
 		printf( "?( (y)es, (n)o )\n" );
 		char answer = get_answer();
 		if( answer == 'n' )
@@ -212,7 +212,7 @@ int ask( struct tree_t *tree, struct tree_node_t *current, struct tree_node_t **
 	else
 	{
 		printf( "This is " );
-		tree -> printer( tree_get_elem( current ) );
+		tree_print( tree, tree_get_elem( current ) );
 		printf( "?( (y)es, (n)o )\n" );
 		*end = current;
 	}
@@ -245,7 +245,7 @@ int start( struct aki_structure *akinator )
 		Do( tree_add( akinator -> tree, end, left, tree_get_elem( end ) ) );
 		Do( tree_add( akinator -> tree, end, right, &str ) );
 		printf( "What differs %s from ", str );
-		Do( akinator -> tree -> printer( tree_get_elem( end ) ) );
+		Do( tree_print( akinator -> tree, tree_get_elem( end ) ) );
 		printf( "\n" );
 		
 		char *differ = ( char * )calloc( MAX_PHRASE_LENGTH, sizeof( char ) );
@@ -315,7 +315,7 @@ int determine( struct aki_structure *akinator )
 		{
 			printf( "ne " );
 		}
-		akinator -> tree -> printer( tree_get_elem( tmp ) );
+		tree_print( akinator -> tree, tree_get_elem( tmp ) );
 		if( strcmp( *( char ** )tree_get_elem( next ), name) )
 			printf( ", " );
 	}

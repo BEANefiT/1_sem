@@ -23,6 +23,7 @@ void *tree_get_elem( struct tree_node_t *node );
 struct tree_node_t *tree_get_next( struct tree_node_t *node, enum side_t side );
 struct tree_node_t *tree_get_parent( struct tree_node_t *node );
 struct tree_node_t *tree_get_root( struct tree_t *tree );
+int tree_print( struct tree_t *tree, void *elem );
 
 #define default_func( tp, type )			\
 int print_##type( void *elem )				\
