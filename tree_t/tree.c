@@ -38,6 +38,7 @@ struct tree_node_t *tree_node_construct( struct tree_t *tree, struct tree_node_t
 		print_log( "ERROR: CANT ALLOCATE THE MEMORY\n" );
 		return NULL;
 	}
+	node -> elem = calloc( 1, tree -> elem_sz );
 	memcpy( node -> elem, elem, tree -> elem_sz );
 	node -> parent = parent;
 	node -> left = NULL;
@@ -46,14 +47,14 @@ struct tree_node_t *tree_node_construct( struct tree_t *tree, struct tree_node_t
 	return node;
 }
 
-struct tree_t *tree_construct( int sz, print_function print_f, cmp_function cmp_f )
+struct tree_t *tree_construct( int sz, print_function print_f, cmp_function cmp_f, void *POISON )
 {
 	struct tree_t *tree = ( struct tree_t * )calloc( 1, sizeof( struct tree_t ) );
 	tree -> printer = print_f;
 	tree -> comparer = cmp_f;
 	tree -> elem_sz = sz;
 	tree -> size = 0;
-	tree -> root = ( struct tree_node_t * )calloc( 1, sizeof( struct tree_node_t ) );
+	tree -> root = tree_node_construct( tree, NULL, POISON );
 	return tree;
 }
 
@@ -160,7 +161,7 @@ int dump_node( FILE *dump, struct tree_t *tree, struct tree_node_t *node, struct
 
 
 	fprintf( dump, "Node%p [shape = record, label = \"{ %p | ", node, node );
-	tree -> printer( node -> elem );
+	tree -> printer( dump, node -> elem );
 	fprintf( dump, " } | " );
 	if( node -> left != NULL )
 		fprintf( dump, "left = %p ", node -> left );
@@ -190,7 +191,34 @@ int dumper( struct tree_t *tree )
 	fprintf( dump, "}" );
 }
 
-int tree_print( struct tree_t *tree, void *elem )
+int tree_print( struct tree_t *tree, FILE *out, void *elem )
 {
-	tree -> printer( elem );
+	tree -> printer( out, elem );
 }
+
+#define default_func( tp, type )			\
+int print_##type( FILE *out, void *elem )		\
+{							\
+	fprintf( out, "%"#tp, *( type * )elem );	\
+}							\
+int cmp_##type( void *elem1, void *elem2 )		\
+{							\
+	return *( type * )elem1 - *( type * )elem2;	\
+}
+
+default_func( d, int );
+default_func( lg, double );
+default_func( g, float );
+default_func( zd, size_t );
+default_func( c, char );
+
+int print_string( FILE *out, void *elem )
+{
+	fprintf( out, "%s", *( char ** )elem );
+}
+int cmp_string( void *elem1, void *elem2 )
+{
+	return strcmp( *( char ** )elem1, *( char ** )elem2 );
+}
+
+#undef default_func
