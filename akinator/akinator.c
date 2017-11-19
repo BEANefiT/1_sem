@@ -59,6 +59,16 @@ char *getsrc( char *src_name, struct aki_structure *akinator )
 		return NULL;
 	}
 
+	char separator = fgetc( src_file );
+	if( separator == '\'' )
+		akinator -> mode = mono;
+	if( separator == '\"' )
+		akinator -> mode = duo;
+	if( separator != '\'' && separator != '\"' )
+	{
+		printf( "invalid separator\n" );
+		return NULL;
+	}
 	Do( akinator -> src_sz = src_sz( src_file ) );
 	char *src = ( char * )calloc( sizeof( char ), akinator -> src_sz );
 	fread( src, sizeof( char ), akinator -> src_sz, src_file );
@@ -82,8 +92,7 @@ int get_command( struct aki_structure *akinator, char *base_name )
 	check_pointer( base_name, 1 );
 
 	printf( "Enter cmd( (s)tart, (d)etermine, (b)ase_edit, (e)scape )\n" );
-	char cmd;
-	scanf( "%c", &cmd );
+	char cmd = getchar();
 	switch( cmd )
 	{
 		case 's':
@@ -162,7 +171,10 @@ int read_base_elem( struct aki_structure *akinator, struct tree_node_t *node, en
 {
 	char *str = ( char * )calloc( MAX_PHRASE_LENGTH, sizeof( char ) );
 	size_t src_cur_delta = 0;
-	sscanf( akinator -> src + akinator -> src_cur, "\'%[^\']\'%n", str, &src_cur_delta );
+	if( akinator -> mode == mono )
+		sscanf( akinator -> src + akinator -> src_cur, "\'%[^\']\'%n", str, &src_cur_delta );
+	if( akinator -> mode == duo )
+		sscanf( akinator -> src + akinator -> src_cur, "\"%[^\"]\"%n", str, &src_cur_delta );
 	akinator -> src_cur += src_cur_delta;
 	Do( make_node( akinator, tree_add( akinator -> tree, node, side, &str ) ) );
 }
@@ -172,13 +184,26 @@ int make_tree( struct aki_structure *akinator )
 	check_pointer( akinator, 1 );
 
 	char *str = ( char * )calloc( MAX_PHRASE_LENGTH, sizeof( char ) );
-	size_t src_cur_delta = 0;
-	sscanf( akinator -> src + akinator -> src_cur, "\'%[^\']\'%n", str, &src_cur_delta );
+	size_t src_cur_delta = 2;
+	if( akinator -> mode == mono )
+	{
+		sscanf( akinator -> src + akinator -> src_cur, "%[^\']%n", str, &src_cur_delta );
+		akinator -> src_cur += src_cur_delta;
+		sscanf( akinator -> src + akinator -> src_cur, "\'%[^\']\'%n", str, &src_cur_delta );
+	}
+	if( akinator -> mode == duo )
+	{
+		sscanf( akinator -> src + akinator -> src_cur, "%[^\"]%n", str, &src_cur_delta );
+		akinator -> src_cur += src_cur_delta;
+		sscanf( akinator -> src + akinator -> src_cur, "\"%[^\"]\"%n", str, &src_cur_delta );
+	}
 	akinator -> src_cur += src_cur_delta;
 	str = ( char * )realloc( str, src_cur_delta );
 	tree_create( char *, tree, string, &"POISON" );
+
 	akinator -> tree = tree;
 	change_elem( akinator -> tree, tree_get_root( akinator -> tree ), &str );
+
 	Do( make_node( akinator, tree_get_root( akinator -> tree ) ) );
 }
 
@@ -261,7 +286,7 @@ int base_write_node( FILE* base, struct tree_node_t *node, int tab_counter )
 
 	for( int i = 0; i < tab_counter; i++ )
 		fprintf( base, "\t" );
-	Do( fprintf( base, "('%s'\n", *( char ** )( tree_get_elem( node ) ) ) );
+	fprintf( base, "('%s'\n", *( char ** )( tree_get_elem( node ) ) );
 	if( tree_get_next( node, left ) == NULL || tree_get_next( node, right ) == NULL )
 	{
 		for( int i = 0; i < tab_counter; i++ )
@@ -269,8 +294,8 @@ int base_write_node( FILE* base, struct tree_node_t *node, int tab_counter )
 		fprintf( base, ")\n" );
 		return 0;
 	}
-	Do( base_write_node( base, tree_get_next( node, left ), tab_counter + 1 ) );
-	Do( base_write_node( base, tree_get_next( node, right ), tab_counter + 1 ) );
+	base_write_node( base, tree_get_next( node, left ), tab_counter + 1 );
+	base_write_node( base, tree_get_next( node, right ), tab_counter + 1 );
 	for( int i = 0; i < tab_counter; i++ )
 		fprintf( base, "\t" );
 	fprintf( base, ")\n" );
@@ -282,6 +307,7 @@ int base_edit( struct aki_structure *akinator, char *base_name )
 	check_pointer( base_name, 1 );
 
 	FILE *base = fopen( base_name, "w" );
+	fprintf( base, "'\n" );
 	Do( base_write_node( base, tree_get_root( akinator -> tree ), 0 ) );
 	fclose( base );
 }
