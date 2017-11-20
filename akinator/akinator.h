@@ -1,16 +1,9 @@
-enum seprs
-{
-	mono,
-	duo
-};
-
 struct aki_structure
 {
 	struct tree_t *tree;
 	char *src;
 	size_t src_sz;
 	size_t src_cur;
-	enum seprs mode;
 };
 int aki_constr( struct aki_structure *akinator );
 char *getsrc( char *src_name, struct aki_structure *akinator );

@@ -159,7 +159,6 @@ struct tree_node_t *tree_get_root( struct tree_t *tree )
 int dump_node( FILE *dump, struct tree_t *tree, struct tree_node_t *node, struct tree_node_t *parent )
 {
 
-
 	fprintf( dump, "Node%p [shape = record, label = \"{ %p | ", node, node );
 	tree -> printer( dump, node -> elem );
 	fprintf( dump, " } | " );

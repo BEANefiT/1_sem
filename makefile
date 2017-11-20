@@ -1,5 +1,5 @@
 CC=gcc
-TARGETS=log.o stack.o tree.o compilier cpu.o cpu akinator.o Akinator dump exe
+TARGETS=log.o stack.o tree.o compilier cpu.o cpu akinator.o Akinator diff.o Diff dump exe
 log.o: ./log/log.c ./log/log.h
 			$(MAKE) -C ./log/
 stack.o: ./stack_t/stack.c ./stack_t/stack.h ./log.o
@@ -16,6 +16,8 @@ akinator.o: ./akinator/akinator.c ./akinator/akinator.h log.o tree.o stack.o
 			$(MAKE) -C ./akinator/
 Akinator: akinator.o
 			$(MAKE) -C ./akinator/
+Diff: ./diff/diff.c ./diff/diff.h log.o tree.o
+			$(MAKE) -C ./diff/
 .PHONY: clean
 clean:
 			rm -rf *.o log.txt $(TARGETS)

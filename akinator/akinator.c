@@ -6,7 +6,7 @@
 #include "akinator.h"
 #include <stack.h>
 
-const int MAX_PHRASE_LENGTH = 37;
+const int MAX_PHRASE_LENGTH = 256;
 
 int main( int argc, char *argv[] )
 {
@@ -30,6 +30,7 @@ int main( int argc, char *argv[] )
 
 	Do( make_tree( &akinator ) );
 
+	printf( "Hello! Tap Enter to get started :)\n" );
 	Do( get_command( &akinator, argv[ 1 ] ) );
 
 	Do( dumper( akinator.tree ) );
@@ -44,7 +45,7 @@ int aki_constr( struct aki_structure *akinator )
 	akinator -> src_sz = 0;
 	akinator -> src = NULL;
 	akinator -> tree = NULL;
-	akinator -> src_cur = 1;
+	akinator -> src_cur = 0;
 }
 
 char *getsrc( char *src_name, struct aki_structure *akinator )
@@ -60,15 +61,12 @@ char *getsrc( char *src_name, struct aki_structure *akinator )
 	}
 
 	char separator = fgetc( src_file );
-	if( separator == '\'' )
-		akinator -> mode = mono;
-	if( separator == '\"' )
-		akinator -> mode = duo;
 	if( separator != '\'' && separator != '\"' )
 	{
 		printf( "invalid separator\n" );
 		return NULL;
 	}
+	akinator -> src_cur = 2;
 	Do( akinator -> src_sz = src_sz( src_file ) );
 	char *src = ( char * )calloc( sizeof( char ), akinator -> src_sz );
 	fread( src, sizeof( char ), akinator -> src_sz, src_file );
@@ -91,6 +89,8 @@ int get_command( struct aki_structure *akinator, char *base_name )
 	check_pointer( akinator, 1 );
 	check_pointer( base_name, 1 );
 
+	while( getchar() != '\n' )
+		;
 	printf( "Enter cmd( (s)tart, (d)etermine, (b)ase_edit, (e)scape )\n" );
 	char cmd = getchar();
 	switch( cmd )
@@ -115,7 +115,7 @@ int get_command( struct aki_structure *akinator, char *base_name )
 			return 1;
 		}
 	}
-	printf( "....\n" );
+	printf( "\n\n********************************************************\n" );
 	
 	if( get_command( akinator, base_name ) == 1 )
 		return 1;
@@ -171,11 +171,10 @@ int read_base_elem( struct aki_structure *akinator, struct tree_node_t *node, en
 {
 	char *str = ( char * )calloc( MAX_PHRASE_LENGTH, sizeof( char ) );
 	size_t src_cur_delta = 0;
-	if( akinator -> mode == mono )
-		sscanf( akinator -> src + akinator -> src_cur, "\'%[^\']\'%n", str, &src_cur_delta );
-	if( akinator -> mode == duo )
-		sscanf( akinator -> src + akinator -> src_cur, "\"%[^\"]\"%n", str, &src_cur_delta );
+	sscanf( akinator -> src + akinator -> src_cur, "%*1[\'\"]%[^\'\"]%*1[\'\"]%n", str, &src_cur_delta );
 	akinator -> src_cur += src_cur_delta;
+	str = ( char * )realloc( str, src_cur_delta );
+
 	Do( make_node( akinator, tree_add( akinator -> tree, node, side, &str ) ) );
 }
 
@@ -184,20 +183,13 @@ int make_tree( struct aki_structure *akinator )
 	check_pointer( akinator, 1 );
 
 	char *str = ( char * )calloc( MAX_PHRASE_LENGTH, sizeof( char ) );
-	size_t src_cur_delta = 2;
-	if( akinator -> mode == mono )
-	{
-		sscanf( akinator -> src + akinator -> src_cur, "%[^\']%n", str, &src_cur_delta );
-		akinator -> src_cur += src_cur_delta;
-		sscanf( akinator -> src + akinator -> src_cur, "\'%[^\']\'%n", str, &src_cur_delta );
-	}
-	if( akinator -> mode == duo )
-	{
-		sscanf( akinator -> src + akinator -> src_cur, "%[^\"]%n", str, &src_cur_delta );
-		akinator -> src_cur += src_cur_delta;
-		sscanf( akinator -> src + akinator -> src_cur, "\"%[^\"]\"%n", str, &src_cur_delta );
-	}
+	size_t src_cur_delta = 0;
+
+	sscanf( akinator -> src + akinator -> src_cur, "%[^\'\"]%n", str, &src_cur_delta );
 	akinator -> src_cur += src_cur_delta;
+	sscanf( akinator -> src + akinator -> src_cur, "%*1[\'\"]%[^\'\"]%*1[\'\"]%n", str, &src_cur_delta );
+	akinator -> src_cur += src_cur_delta;
+
 	str = ( char * )realloc( str, src_cur_delta );
 	tree_create( char *, tree, string, &"POISON" );
 
@@ -259,11 +251,11 @@ int start( struct aki_structure *akinator )
 	{
 		printf( "What is it?\n" );
 
-		char *strtmp = ( char * )calloc( 5, sizeof( char ) );
-		fgets( strtmp, MAX_PHRASE_LENGTH, stdin );
-		free( strtmp );
-
+		while( getchar() != '\n' )
+			;
+		
 		char *str = ( char *)calloc( MAX_PHRASE_LENGTH, sizeof( char ) );
+		str = ( char * )calloc( strlen( str ), sizeof( char ) );
 		fgets( str, MAX_PHRASE_LENGTH, stdin );
 		str[ strlen( str ) - 1 ] = '\0';
 
