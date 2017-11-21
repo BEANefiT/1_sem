@@ -13,3 +13,5 @@ int start( struct aki_structure *akinator );
 int base_edit( struct aki_structure *akinator, char *base_name );
 int determine( struct aki_structure *akinator );
 int get_command( struct aki_structure *akinator, char *base_name );
+int print_base( struct aki_structure *akinator );
+int compare( struct aki_structure *akinator );

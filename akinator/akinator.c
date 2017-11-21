@@ -91,7 +91,7 @@ int get_command( struct aki_structure *akinator, char *base_name )
 
 	while( getchar() != '\n' )
 		;
-	printf( "Enter cmd( (s)tart, (d)etermine, (b)ase_edit, (e)scape )\n" );
+	printf( "Enter cmd( (s)tart, (d)etermine, (c)ompare, (b)ase_edit, (p)rint_base, (q)uit )\n" );
 	char cmd = getchar();
 	switch( cmd )
 	{
@@ -110,12 +110,22 @@ int get_command( struct aki_structure *akinator, char *base_name )
 			Do( base_edit( akinator, base_name ) );
 			break;
 		}
-		case 'e':
+		case 'p':
+		{
+			Do( print_base( akinator ) );
+			break;
+		}
+		case 'q':
 		{
 			return 1;
 		}
+		case 'c':
+		{
+			Do( compare( akinator ) );
+			break;
+		}
 	}
-	printf( "\n\n********************************************************\n" );
+	printf( "\n\n*******************************************************************************\n" );
 	
 	if( get_command( akinator, base_name ) == 1 )
 		return 1;
@@ -304,24 +314,17 @@ int base_edit( struct aki_structure *akinator, char *base_name )
 	fclose( base );
 }
 
+struct tree_node_t *make_path( struct aki_structure *akinator, struct stack_t *stack_name, char **name, char *text );
+
 int determine( struct aki_structure *akinator )
 {
 	check_pointer( akinator, 1 );
 
-	printf( "Type character\n" );
-	char *name = ( char * )calloc( MAX_PHRASE_LENGTH, sizeof( char ) );
-	scanf( "%s", name );
-	struct tree_node_t *object;
-	Do( object = tree_find( akinator -> tree, tree_get_root( akinator -> tree ), &name ) );
+	char *name = NULL;
 	stack( struct tree_node_t *, node_ptrs );
-	int kostyl = 0;
-	while( !kostyl )
-	{
-		if( object == tree_get_root( akinator -> tree ) )
-			kostyl = 1;
-		Do( push( node_ptrs, &object ) );
-		Do( object = tree_get_parent( object ) );
-	}
+	struct tree_node_t *object = make_path( akinator, node_ptrs, &name, "Type character" );
+	check_pointer( object, 1 );
+
 	size_t sz = size( node_ptrs );
 	for( size_t i = 1; i < sz; i++ )
 	{
@@ -338,4 +341,137 @@ int determine( struct aki_structure *akinator )
 			printf( ", " );
 	}
 	printf( "\n" );
+}
+
+int print_base( struct aki_structure *akinator )
+{
+	Do( dumper( akinator -> tree ) );
+	check_pointer( akinator, 1 );
+	system( "dot -q -Tpdf dump -o dmp\n" );
+	system( "alias evince='evince 2>/dev/null'\n" );
+	system( "evince dmp" );
+	return 0;
+}
+
+int compare( struct aki_structure *akinator )
+{
+	check_pointer( akinator, 1 );
+
+	char *name1 = NULL;
+	stack( struct tree_node_t *, node_ptrs1 );
+	struct tree_node_t *object1 = make_path( akinator, node_ptrs1, &name1, "Type 1st character" );
+	check_pointer( object1, 1 );
+
+	char *name2 = NULL;
+	stack( struct tree_node_t *, node_ptrs2 );
+	struct tree_node_t *object2 = make_path( akinator, node_ptrs2, &name2, "Type 2nd character" );
+	check_pointer( object2, 1 );
+
+	struct tree_node_t *tmp1 = NULL;
+	struct tree_node_t *tmp2 = NULL;
+	struct tree_node_t *tmp3 = NULL;
+	struct tree_node_t *tmp4 = NULL;
+
+	Do( pop( node_ptrs1, &tmp1 ) );
+	Do( pop( node_ptrs2, &tmp2 ) );
+	Do( top( node_ptrs1, &tmp3 ) );
+	Do( top( node_ptrs2, &tmp4 ) );
+	Do( push( node_ptrs1, &tmp1 ) );
+	Do( push( node_ptrs2, &tmp2 ) );
+
+	if( tmp3 == tmp4 )
+	{
+		printf( "%s and %s are both ", name1, name2 );
+		char *spk = ( char * )calloc( MAX_PHRASE_LENGTH, sizeof( char ) );
+		sprintf( spk, "espeak \' %s and %s are both \' -s 135", name1, name2 );
+		system( spk );
+		free( spk );
+	}
+	else
+	{
+		printf( "They are different at all. \n" );
+		system( "espeak \"They are different at all\" -s 135" );
+	}
+
+	for( int i = 0; i < ( size( node_ptrs1 ) > size( node_ptrs2 ) ? size( node_ptrs1 ) : size( node_ptrs2 ) ); i++ )
+	{
+		struct tree_node_t *current1 = NULL;
+		struct tree_node_t *current2 = NULL;
+		struct tree_node_t *next1 = NULL;
+		struct tree_node_t *next2 = NULL;
+
+		Do( pop( node_ptrs1, &current1 ) );
+		Do( pop( node_ptrs2, &current2 ) );
+		Do( top( node_ptrs1, &next1 ) );
+		Do( top( node_ptrs2, &next2 ) );
+
+		if( next1 == next2 && next1 != NULL )
+		{
+			printf( "%s, ", *( char ** )tree_get_elem( current1 ) );
+
+			char *spk = ( char * )calloc( MAX_PHRASE_LENGTH, sizeof( char ) );
+			sprintf( spk, "espeak \' %s, \' -s 135", *( char ** )tree_get_elem( current1 ) );
+			system( spk );
+			free( spk );
+
+			continue;
+		}
+		if( current1 == current2 )
+		{
+			tree_get_next( current1, right ) == next1
+			?
+				printf( "%s is %s, but %s is not.", name1, *( char ** )tree_get_elem( current1 ), name2 )
+			:
+				printf( "%s is %s, but %s is not.", name2, *( char ** )tree_get_elem( current1 ), name1 );
+			
+			char *spk = ( char * )calloc( MAX_PHRASE_LENGTH, sizeof( char ) );
+			
+			tree_get_next( current1, right ) == next1
+			?
+				sprintf( spk, "espeak \'%s is %s, but %s is not.\' -s 135", name1, *( char ** )tree_get_elem( current1 ), name2 )
+			:
+				sprintf( spk, "espeak \'%s is %s, but %s is not.\' -s 135", name2, *( char ** )tree_get_elem( current1 ), name1 );
+
+			system( spk );
+			free( spk );
+
+			break;
+		}
+	}
+}
+
+struct tree_node_t *make_path( struct aki_structure *akinator, struct stack_t *stack_name, char **name, char *text )
+{
+	check_pointer( akinator, NULL );
+	check_pointer( stack_name, NULL );
+	check_pointer( name, NULL );
+	check_pointer( text, NULL );
+
+	printf( "%s\n", text );
+	*name =  ( char * )calloc( MAX_PHRASE_LENGTH, sizeof( char ) );
+	scanf( "%s", *name );
+	*name = ( char * )realloc( *name, strlen( *name ) );
+
+	struct tree_node_t *object = NULL;
+	Do( object = tree_find( akinator -> tree, tree_get_root( akinator -> tree ), name ) );
+
+	if( object == NULL )
+	{
+		printf( "%s not found :(\n", *name );
+		return NULL;
+	}
+
+	int kostyl = 0;
+	while( !kostyl )
+	{
+		Do( push( stack_name, &object ) );
+
+		if( object == tree_get_root( akinator -> tree ) )
+			kostyl = 1;
+
+		else
+			Do( object = tree_get_parent( object ) );
+	}
+
+	return object;
 }

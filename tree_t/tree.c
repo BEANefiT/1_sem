@@ -3,6 +3,7 @@
 #include <string.h>
 #include <log.h>
 #include "tree.h"
+
 struct tree_node_t
 {
 	void *elem;
@@ -62,17 +63,20 @@ struct tree_node_t *tree_add( struct tree_t *tree, struct tree_node_t *parent, e
 {
 	check_pointer( tree, NULL );
 	check_pointer( parent, NULL );
+
 	if( side != left && side != right )
 	{
 		print_log( "ERROR: FALSE SIDE\n" );
 		error = UNEXPECTED;
 		return NULL;
 	}
+
 	if( side == left )
 	{
 		parent -> left = tree_node_construct( tree, parent, elem );
 		return parent -> left;
 	}
+
 	if( side == right )
 	{
 		parent -> right = tree_node_construct( tree, parent, elem );
