@@ -89,8 +89,6 @@ int get_command( struct aki_structure *akinator, char *base_name )
 	check_pointer( akinator, 1 );
 	check_pointer( base_name, 1 );
 
-	while( getchar() != '\n' )
-		;
 	printf( "Enter cmd( (s)tart, (d)etermine, (c)ompare, (b)ase_edit, (p)rint_base, (q)uit )\n" );
 	char cmd = getchar();
 	switch( cmd )
@@ -126,6 +124,7 @@ int get_command( struct aki_structure *akinator, char *base_name )
 		}
 	}
 	printf( "\n\n*******************************************************************************\n" );
+	getchar();
 	
 	if( get_command( akinator, base_name ) == 1 )
 		return 1;
@@ -144,13 +143,12 @@ int read_base( struct aki_structure *akinator, char *tmp )
 	free( str );
 }
 
-int read_base_elem( struct aki_structure *akinator, struct tree_node_t *node, enum side_t side );
+static int read_base_elem( struct aki_structure *akinator, struct tree_node_t *node, enum side_t side );
 
 int make_node( struct aki_structure *akinator, struct tree_node_t *node )
 {
 	check_pointer( akinator, 1 );
 	check_pointer( node, 1 );
-
 
 	char tmp = ' ';
 
@@ -177,7 +175,7 @@ int make_node( struct aki_structure *akinator, struct tree_node_t *node )
 	}
 }
 
-int read_base_elem( struct aki_structure *akinator, struct tree_node_t *node, enum side_t side )
+static int read_base_elem( struct aki_structure *akinator, struct tree_node_t *node, enum side_t side )
 {
 	char *str = ( char * )calloc( MAX_PHRASE_LENGTH, sizeof( char ) );
 	size_t src_cur_delta = 0;
@@ -260,7 +258,7 @@ int start( struct aki_structure *akinator )
 	if( answer == 'n' )
 	{
 		printf( "What is it?\n" );
-
+		// Replace with scanf("%*[^\n] "
 		while( getchar() != '\n' )
 			;
 		
@@ -334,8 +332,18 @@ int determine( struct aki_structure *akinator )
 		Do( top( node_ptrs, &next ) );
 		if( tree_get_next( tmp, left ) == next )
 		{
+			char *spk = ( char * )calloc( MAX_PHRASE_LENGTH, sizeof( char ) );
+			sprintf( spk, "espeak \' ne \' -s 170" );
+			system( spk );
+			free( spk );
 			printf( "ne " );
 		}
+
+		char *spk = ( char * )calloc( MAX_PHRASE_LENGTH, sizeof( char ) );
+		sprintf( spk, "espeak \' %s \' -s 135", *( char **)tree_get_elem( tmp ) );
+		system( spk );
+		free( spk );
+
 		tree_print( akinator -> tree, stdout, tree_get_elem( tmp ) );
 		if( strcmp( *( char ** )tree_get_elem( next ), name) )
 			printf( ", " );
@@ -347,8 +355,7 @@ int print_base( struct aki_structure *akinator )
 {
 	Do( dumper( akinator -> tree ) );
 	check_pointer( akinator, 1 );
-	system( "dot -q -Tpdf dump -o dmp\n" );
-	system( "alias evince='evince 2>/dev/null'\n" );
+	system( "/usr/bin/dot -Tps /home/beanef1t/Documents/kek/1_sem/dump -o dmp" );
 	system( "evince dmp" );
 	return 0;
 }

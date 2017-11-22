@@ -26,10 +26,14 @@ struct tree_node_t *tree_get_next( struct tree_node_t *node, enum side_t side );
 struct tree_node_t *tree_get_parent( struct tree_node_t *node );
 struct tree_node_t *tree_get_root( struct tree_t *tree );
 int tree_print( struct tree_t *tree, FILE *out, void *elem );
+struct tree_node_t *tree_copy_node( struct tree_node_t *node );
+struct tree_node_t *tree_copy( struct tree_t *tree, struct tree_node_t *node );
+struct tree_node_t *tree_node_construct( struct tree_t *tree, struct tree_node_t *parent, void *elem );
+int tree_set( struct tree_node_t *parent, enum side_t side, struct tree_node_t *node );
 
-#define default_func( tp, type )			\
-int print_##type( FILE *out, void *elem );		\
-int cmp_##type( void *elem1, void *elem2 );		\
+#define default_func( tp, type )				\
+int print_##type( FILE *out, void *elem );			\
+int cmp_##type( void *elem1, void *elem2 );			\
 
 default_func( d, int );
 default_func( lg, double );

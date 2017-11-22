@@ -17,7 +17,6 @@ struct tree_t
 	print_function printer;
 	cmp_function comparer;
 	int elem_sz;
-	size_t size;
 	struct tree_node_t *root;
 
 };
@@ -44,7 +43,6 @@ struct tree_node_t *tree_node_construct( struct tree_t *tree, struct tree_node_t
 	node -> parent = parent;
 	node -> left = NULL;
 	node -> right = NULL;
-	tree -> size++;
 	return node;
 }
 
@@ -54,7 +52,6 @@ struct tree_t *tree_construct( int sz, print_function print_f, cmp_function cmp_
 	tree -> printer = print_f;
 	tree -> comparer = cmp_f;
 	tree -> elem_sz = sz;
-	tree -> size = 0;
 	tree -> root = tree_node_construct( tree, NULL, POISON );
 	return tree;
 }
@@ -63,7 +60,7 @@ struct tree_node_t *tree_add( struct tree_t *tree, struct tree_node_t *parent, e
 {
 	check_pointer( tree, NULL );
 	check_pointer( parent, NULL );
-
+	
 	if( side != left && side != right )
 	{
 		print_log( "ERROR: FALSE SIDE\n" );
@@ -107,7 +104,6 @@ int del_branch( struct tree_t *tree, struct tree_node_t *parent )
 		del_branch( tree, parent -> right );
 	free( parent );
 	parent = NULL;
-	tree -> size --;
 }
 
 struct tree_node_t *tree_find( struct tree_t *tree, struct tree_node_t *root, void *target )
@@ -158,6 +154,45 @@ struct tree_node_t *tree_get_root( struct tree_t *tree )
 {
 	check_pointer( tree, NULL );
 	return tree -> root;
+}
+
+struct tree_node_t *tree_copy_node( struct tree_node_t *node )
+{
+	struct tree_node_t *newnode = ( struct tree_node_t * )calloc( 1, sizeof( struct tree_node_t ) );
+	newnode -> elem = node -> elem;
+	return newnode;
+}
+
+struct tree_node_t *tree_copy( struct tree_t *tree, struct tree_node_t *node )
+{
+	check_pointer( tree, NULL );
+
+	if( node == NULL )
+		return NULL;
+
+	struct tree_node_t *newnode = tree_copy_node( node );
+
+	if( tree_get_next( node, left ) )
+		newnode -> left = tree_copy( tree, node -> left );
+
+	if( tree_get_next( node, right ) )
+		newnode -> right = tree_copy( tree, node -> right );
+
+	return newnode;
+}
+
+int tree_set( struct tree_node_t *parent, enum side_t side, struct tree_node_t *node )
+{
+	check_pointer( parent, 1 );
+	check_pointer( node, 1 );
+
+	if( side == left )
+		parent -> left = node;
+
+	if( side == right )
+		parent -> right = node;
+
+	node -> parent = parent;
 }
 
 int dump_node( FILE *dump, struct tree_t *tree, struct tree_node_t *node, struct tree_node_t *parent )
