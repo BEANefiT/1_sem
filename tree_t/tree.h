@@ -15,21 +15,25 @@ enum side_t
 	left,
 	right
 };
-struct tree_t *tree_construct( int sz, print_function func_f, cmp_function cmp_f, void *POISON );
-struct tree_node_t *tree_add( struct tree_t *tree, struct tree_node_t *parent, enum side_t side, void *elem );
-int change_elem( struct tree_t *tree, struct tree_node_t *node, void *arg );
-int del_branch( struct tree_t *tree, struct tree_node_t *parent );
-struct tree_node_t *tree_find( struct tree_t *tree, struct tree_node_t *root, void *target );
-int dumper( struct tree_t *tree );
-void *tree_get_elem( struct tree_node_t *node );
-struct tree_node_t *tree_get_next( struct tree_node_t *node, enum side_t side );
-struct tree_node_t *tree_get_parent( struct tree_node_t *node );
-struct tree_node_t *tree_get_root( struct tree_t *tree );
-int tree_print( struct tree_t *tree, FILE *out, void *elem );
-struct tree_node_t *tree_copy_node( struct tree_node_t *node );
-struct tree_node_t *tree_copy( struct tree_t *tree, struct tree_node_t *node );
-struct tree_node_t *tree_node_construct( struct tree_t *tree, struct tree_node_t *parent, void *elem );
-int tree_set( struct tree_node_t *parent, enum side_t side, struct tree_node_t *node );
+
+struct tree_t* 		tree_construct( int sz, print_function func_f, cmp_function cmp_f, void *POISON );
+
+struct tree_node_t*	tree_node_construct( struct tree_t *tree, struct tree_node_t *parent, void *elem );
+struct tree_node_t* 	tree_add( struct tree_t *tree, struct tree_node_t *parent, enum side_t side, void *elem );
+struct tree_node_t* 	tree_find( struct tree_t *tree, struct tree_node_t *root, void *target );
+struct tree_node_t*	tree_get_next( struct tree_node_t *node, enum side_t side );
+struct tree_node_t*	tree_get_parent( struct tree_node_t *node );
+struct tree_node_t*	tree_get_root( struct tree_t *tree );
+struct tree_node_t*	tree_copy_node( struct tree_node_t *node );
+struct tree_node_t*	tree_copy( struct tree_t *tree, struct tree_node_t *node );
+
+void*			tree_get_elem( struct tree_node_t *node );
+
+int 			tree_print( struct tree_t *tree, FILE *out, void *elem );
+int 			change_elem( struct tree_t *tree, struct tree_node_t *node, void *arg );
+int 			dumper( struct tree_t *tree );
+int 			del_branch( struct tree_t *tree, struct tree_node_t *parent );
+int 			tree_set( struct tree_node_t *parent, enum side_t side, struct tree_node_t *node );
 
 #define default_func( tp, type )				\
 int print_##type( FILE *out, void *elem );			\

@@ -30,7 +30,7 @@ struct tree_node_t *tree_node_construct( struct tree_t *tree, struct tree_node_t
 	}
 	if( parent == NULL )
 	{
-		print_log( "ERROR: TRYING TO NODE_CONSTR FOR NO PARENT\n" );
+		print_log( "WARNING: trying to node_constr for no tree\n" );
 	}
 	struct tree_node_t *node = ( struct tree_node_t * )calloc( 1, sizeof( struct tree_node_t ) );
 	if( node == NULL )

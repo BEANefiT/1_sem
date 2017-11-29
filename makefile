@@ -1,5 +1,8 @@
 CC=gcc
-TARGETS=log.o stack.o tree.o compilier cpu.o cpu akinator.o Akinator diff.o Diff dump exe
+TARGETS=log.o stack.o tree.o compilier cpu.o cpu akinator.o Akinator diff.o Diff dump exe dmp
+
+all: Diff
+
 log.o: ./log/log.c ./log/log.h
 			$(MAKE) -C ./log/
 stack.o: ./stack_t/stack.c ./stack_t/stack.h ./log.o
