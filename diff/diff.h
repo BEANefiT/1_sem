@@ -16,11 +16,12 @@ enum type_t
 
 typedef struct element element;
 
-size_t 	src_sz( FILE *src );
-char*	getsrc( char *src_name, struct aki_structure *akinator );
-int 	aki_constr( struct aki_structure *akinator );
-int 	make_tree( struct aki_structure *akinator );
-int 	start( struct aki_structure *akinator );
+struct tree_t *	start( struct tree_t *tree );
+size_t 		src_sz( FILE *src );
+char *		getsrc( char *src_name, struct aki_structure *akinator );
+int 		aki_constr( struct aki_structure *akinator );
+int 		make_tree( struct aki_structure *akinator );
+int		tex_it( struct aki_structure *akinator );
 //int 	base_edit( struct aki_structure *akinator, char *base_name );
 
 int print_struct_element( FILE *out, void *elem );

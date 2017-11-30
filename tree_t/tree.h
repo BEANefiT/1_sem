@@ -5,8 +5,8 @@ typedef struct tree_t tree_t;
 typedef int ( *print_function )( FILE *, void * );
 typedef int ( *cmp_function )( void *, void * );
 
-#define tree_create( type, name, func, POISON )							\
-struct tree_t *name = tree_construct( sizeof( type ), print_##func, cmp_##func, POISON );	\
+#define tree_create( type, name, func, root_elem )							\
+struct tree_t *name = tree_construct( sizeof( type ), print_##func, cmp_##func, root_elem );	\
 if( name == NULL )										\
 	print_log( "ERROR: CANT CREATE TREE\n" );
 
@@ -16,7 +16,7 @@ enum side_t
 	right
 };
 
-struct tree_t* 		tree_construct( int sz, print_function func_f, cmp_function cmp_f, void *POISON );
+struct tree_t* 		tree_construct( int sz, print_function func_f, cmp_function cmp_f, void *root_elem );
 
 struct tree_node_t*	tree_node_construct( struct tree_t *tree, struct tree_node_t *parent, void *elem );
 struct tree_node_t* 	tree_add( struct tree_t *tree, struct tree_node_t *parent, enum side_t side, void *elem );
@@ -24,6 +24,7 @@ struct tree_node_t* 	tree_find( struct tree_t *tree, struct tree_node_t *root, v
 struct tree_node_t*	tree_get_next( struct tree_node_t *node, enum side_t side );
 struct tree_node_t*	tree_get_parent( struct tree_node_t *node );
 struct tree_node_t*	tree_get_root( struct tree_t *tree );
+struct tree_node_t*	tree_get_left( struct tree_t *tree );
 struct tree_node_t*	tree_copy_node( struct tree_node_t *node );
 struct tree_node_t*	tree_copy( struct tree_t *tree, struct tree_node_t *node );
 

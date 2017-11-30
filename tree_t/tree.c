@@ -46,13 +46,13 @@ struct tree_node_t *tree_node_construct( struct tree_t *tree, struct tree_node_t
 	return node;
 }
 
-struct tree_t *tree_construct( int sz, print_function print_f, cmp_function cmp_f, void *POISON )
+struct tree_t *tree_construct( int sz, print_function print_f, cmp_function cmp_f, void *root_elem )
 {
 	struct tree_t *tree = ( struct tree_t * )calloc( 1, sizeof( struct tree_t ) );
 	tree -> printer = print_f;
 	tree -> comparer = cmp_f;
 	tree -> elem_sz = sz;
-	tree -> root = tree_node_construct( tree, NULL, POISON );
+	tree -> root = tree_node_construct( tree, NULL, root_elem );
 	return tree;
 }
 
@@ -154,6 +154,17 @@ struct tree_node_t *tree_get_root( struct tree_t *tree )
 {
 	check_pointer( tree, NULL );
 	return tree -> root;
+}
+
+struct tree_node_t *tree_get_left( struct tree_t *tree )
+{
+	check_pointer( tree, NULL );
+	struct tree_node_t *tmp = tree_get_root( tree );
+	
+	while( tree_get_next( tmp, left ) != NULL )
+		tmp = tree_get_next( tmp, left );
+	
+	return tmp;
 }
 
 struct tree_node_t *tree_copy_node( struct tree_node_t *node )

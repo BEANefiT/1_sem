@@ -7,7 +7,7 @@
 
 const int MAX_PHRASE_LENGTH = 37;
 
-#define OPER_DEF( cmd, operatr, code ) cmd,
+#define OPER_DEF( cmd, type, FUNC, operatr, code ) cmd,
 
 enum operator_t
 {
@@ -23,7 +23,7 @@ struct element
 	enum operator_t oper;
 	enum type_t 	type;
 	double 		value;
-	char*		var;
+	char *		var;
 };
 
 int main( int argc, char *argv[] )
@@ -48,9 +48,11 @@ int main( int argc, char *argv[] )
 
 	Do( make_tree( &akinator ) );
 
-	Do( start( &akinator ) );
+	Do( akinator.newtree = start( akinator.tree ) );
 
-	Do( dumper( akinator.newtree ) );
+	Do( dumper( akinator.tree ) );
+
+	tex_it( &akinator );
 	log_destr();
 	return 0;
 }
@@ -146,15 +148,15 @@ int type_recognize( struct element *node, char *str )
 	node -> var = ( char * )calloc( strlen( str ), sizeof( char ) );
 	strcpy( node -> var, str );
 	
-	#define OPER_DEF( cmd, operatr, code )		\
-	do						\
-	{						\
-		if( !strcmp( str, #operatr ) )		\
-		{					\
-			node -> type = operat;		\
-			node -> oper = cmd;		\
-			return 0;			\
-		}					\
+	#define OPER_DEF( cmd, cmd_type, FUNC, operatr, code )		\
+	do								\
+	{								\
+		if( !strcmp( str, #operatr ) )				\
+		{							\
+			node -> type = operat;				\
+			node -> oper = cmd;				\
+			return 0;					\
+		}							\
 	}while( 0 );
 
 	#include "operators.h"
@@ -200,21 +202,21 @@ int make_tree( struct aki_structure *akinator )
 	sscanf( akinator -> src + akinator -> src_cur, "%[^\'\"]%n", str, &src_cur_delta );
 	akinator -> src_cur += src_cur_delta;
 	sscanf( akinator -> src + akinator -> src_cur, "%*1[\'\"]%lg%*1[\'\"]%n", &koeff, &src_cur_delta );
-	struct element *root = NULL;
+	struct element *root_elem = NULL;
 	if( src_cur_delta != 0 )
 		{
-			root = ( struct element * )calloc( 1, sizeof( struct element ) );
-			root -> value = koeff;
-			root -> type = koefficient;
+			root_elem = ( struct element * )calloc( 1, sizeof( struct element ) );
+			root_elem -> value = koeff;
+			root_elem -> type = koefficient;
 		}
 	if( src_cur_delta == 0 )
 		{
 			sscanf( akinator -> src + akinator -> src_cur, "%*1[\'\"]%[^\'\"]%*1[\'\"]%n", str, &src_cur_delta );
-			root = ( struct element * )calloc( 1, sizeof( struct element ) );
-			type_recognize( root, str );
+			root_elem = ( struct element * )calloc( 1, sizeof( struct element ) );
+			type_recognize( root_elem, str );
 		}
 	akinator -> src_cur += src_cur_delta;
-	tree_create( struct element, tree, struct_element, root );
+	tree_create( struct element, tree, struct_element, root_elem );
 	akinator -> tree = tree;
 	Do( make_node( akinator, tree_get_root( akinator -> tree ) ) );
 }
@@ -232,13 +234,13 @@ struct tree_node_t *diff( struct tree_t *tree, struct tree_node_t *node )
 
 	switch( OPERAT )
 	{
-		#define OPER_DEF( cmd, operatr, code )	\
-		do					\
-		{					\
-			case cmd:			\
-			{				\
-				return code;		\
-			}				\
+		#define OPER_DEF( cmd, type, FUNC, operatr, code )	\
+		do							\
+		{							\
+			case cmd:					\
+			{						\
+				return code;				\
+			}						\
 		}while( 0 );
 
 		#include "operators.h"
@@ -274,12 +276,12 @@ int print_struct_element( FILE *out, void *elem )
 		{
 			switch( ( ( struct element * )elem ) -> oper )
 			{
-				#define OPER_DEF( cmd, operatr, code )	\
-				case cmd:				\
-				{					\
-					fprintf( out, #operatr );	\
-					break;				\
-				}					\
+				#define OPER_DEF( cmd, type, FUNC, operatr, code )	\
+				case cmd:						\
+				{							\
+					fprintf( out, #operatr );			\
+					break;						\
+				}
 	
 				#include "operators.h"
 				#undef OPER_DEF
@@ -290,7 +292,7 @@ int print_struct_element( FILE *out, void *elem )
 	}
 }
 
-#define OPERAT_CODE( NAME, symbol )								\
+#define OPERAT_CODE_bin( NAME, symbol )								\
 												\
 struct tree_node_t *NAME( struct tree_t *tree, struct tree_node_t *a, struct tree_node_t *b )	\
 {												\
@@ -301,53 +303,139 @@ struct tree_node_t *NAME( struct tree_t *tree, struct tree_node_t *a, struct tre
 	tree_set( parent, left, a );								\
 	tree_set( parent, right, b );								\
 	return parent;										\
-}												\
-
-OPERAT_CODE( ADD, add_cmd )
-OPERAT_CODE( SUB, sub_cmd )
-OPERAT_CODE( DIV, div_cmd )
-OPERAT_CODE( MUL, mul_cmd )
-
-#undef OPERAT_CODE
-
-int start( struct aki_structure *akinator )
-{
-	check_pointer( akinator, 1 );
-	
-	Do( tree_create( struct element, newtree, struct_element, diff( akinator -> tree, tree_get_root( akinator -> tree ) ) ) );
-	
 }
 
 
-/*int base_write_node( FILE* base, struct tree_node_t *node, int tab_counter )
+#define OPERAT_CODE_uno( NAME, symbol )								\
+												\
+struct tree_node_t *NAME( struct tree_t *tree, struct tree_node_t *a )				\
+{												\
+	struct element *elem = ( struct element * )calloc( 1, sizeof( struct element ) );	\
+	elem -> type = operat;									\
+	elem -> oper = symbol;									\
+	struct tree_node_t *parent = tree_node_construct( tree, NULL, elem );			\
+	tree_set( parent, left, a );								\
+	return parent;										\
+}
+
+#define OPER_DEF( cmd, type, FUNC, operatr, code ) OPERAT_CODE_##type( FUNC, cmd )
+
+#include "operators.h"
+
+#undef OPER_DEF
+
+#undef OPERAT_CODE_BIN
+#undef OPERAT_CODE_UNO
+
+struct tree_t *start( struct tree_t *tree )
 {
-	check_pointer( base, 1 );
+	check_pointer( tree, NULL );
+
+	struct tree_node_t *root = diff( tree, tree_get_root( tree ) );
+	
+	tree_create( struct element, newtree, struct_element, tree_get_elem( root ) );
+
+	Do( tree_set( tree_get_root( newtree ), left, tree_get_next( root, left ) ) );
+	Do( tree_set( tree_get_root( newtree ), right, tree_get_next( root, right ) ) );
+
+	return newtree;
+}
+
+int texer( FILE* doc, struct tree_node_t *node )
+{
+	check_pointer( doc, 1 );
 	check_pointer( node, 1 );
 
-	for( int i = 0; i < tab_counter; i++ )
-		fprintf( base, "\t" );
-	fprintf( base, "('%s'\n", *( char ** )( tree_get_elem( node ) ) );
-	if( tree_get_next( node, left ) == NULL || tree_get_next( node, right ) == NULL )
+	struct element *elem = ( struct element * )tree_get_elem( node );
+
+	switch( elem -> type )
 	{
-		for( int i = 0; i < tab_counter; i++ )
-			fprintf( base, "\t" );
-		fprintf( base, ")\n" );
-		return 0;
+		case koefficient:
+		{
+			fprintf( doc, "{%lg}", elem -> value );
+			break;
+		}
+		
+		case variable:
+		{
+			fprintf( doc, "%s", elem -> var );
+			break;
+		}
+
+		case operat:
+		{
+			switch( OPERAT )
+			{
+				#define OPER_DEF( cmd, cmd_type, FUNC, operatr, code )			\
+													\
+				case cmd:								\
+				{									\
+					if( !strcmp( #cmd_type, "bin" ) )				\
+					{								\
+						if( !strcmp( #operatr, "/" ) )				\
+						{							\
+							fprintf( doc, "\\frac{" );			\
+							texer( doc, tree_get_next( node, left ) );	\
+							fprintf( doc, "}{" );				\
+							texer( doc, tree_get_next( node, right ) );	\
+							fprintf( doc, "}" );				\
+													\
+							break;						\
+						}							\
+													\
+						else							\
+						{								\
+							if( strcmp( #operatr, "*" ) && strcmp( #operatr, "/" ) )	\
+								fprintf( doc, "\\left(" );				\
+							texer( doc, tree_get_next( node, left ) );			\
+							fprintf( doc, #operatr );					\
+							texer( doc, tree_get_next( node, right ) );			\
+							if( strcmp( #operatr, "*" ) && strcmp( #operatr, "/" ) )	\
+								fprintf( doc, "\\right)" );			\
+													\
+							break;						\
+						}							\
+					}								\
+													\
+					if( !strcmp( #cmd_type, "uno" ) )				\
+					{								\
+						fprintf( doc, #operatr"\\left(" );			\
+						texer( doc, tree_get_next( node, left ) );		\
+						fprintf( doc, "\\right)" );				\
+													\
+						break;							\
+					}								\
+				}
+
+				#include "operators.h"
+				#undef OPER_DEF
+			}
+			
+			break;
+		}
 	}
-	base_write_node( base, tree_get_next( node, left ), tab_counter + 1 );
-	base_write_node( base, tree_get_next( node, right ), tab_counter + 1 );
-	for( int i = 0; i < tab_counter; i++ )
-		fprintf( base, "\t" );
-	fprintf( base, ")\n" );
 }
 
-int base_edit( struct aki_structure *akinator, char *base_name )
+int tex_it( struct aki_structure *akinator )
 {
 	check_pointer( akinator, 1 );
-	check_pointer( base_name, 1 );
 
-	FILE *base = fopen( base_name, "w" );
-	fprintf( base, "'\n" );
-	Do( base_write_node( base, tree_get_root( akinator -> tree ), 0 ) );
-	fclose( base );
-}*/
+	FILE *doc = fopen( "tex", "w" );
+	fprintf( doc,	"\\documentclass[14pt,twoside,a4paper]{report}\n"
+			"\\begin{document}\n"
+			"function is:\n"
+			"$$" );
+
+	Do( texer( doc, tree_get_root( akinator -> tree ) ) );
+
+	fprintf( doc, 	"$$\n"
+			"derivative is:\n"
+			"$$" );
+
+	Do( texer( doc, tree_get_root( akinator -> newtree ) ) );
+
+	fprintf( doc,	"$$\n"
+			"\\end{document}\n" );
+
+	fclose( doc );
+}
