@@ -50,7 +50,7 @@ int main( int argc, char *argv[] )
 
 	Do( akinator.newtree = start( akinator.tree ) );
 
-	Do( dumper( akinator.tree ) );
+	Do( dumper( akinator.newtree ) );
 
 	tex_it( &akinator );
 	log_destr();
@@ -324,8 +324,8 @@ struct tree_node_t *NAME( struct tree_t *tree, struct tree_node_t *a )				\
 
 #undef OPER_DEF
 
-#undef OPERAT_CODE_BIN
-#undef OPERAT_CODE_UNO
+#undef OPERAT_CODE_bin
+#undef OPERAT_CODE_uno
 
 struct tree_t *start( struct tree_t *tree )
 {
@@ -338,7 +338,181 @@ struct tree_t *start( struct tree_t *tree )
 	Do( tree_set( tree_get_root( newtree ), left, tree_get_next( root, left ) ) );
 	Do( tree_set( tree_get_root( newtree ), right, tree_get_next( root, right ) ) );
 
+	optimize_it( newtree );
+
 	return newtree;
+}
+
+int optimizer1( struct tree_t *tree, struct tree_node_t *node )
+{
+	check_pointer( node, 0 );
+
+	struct element *elem = ( struct element * )tree_get_elem( node );
+	
+	if( elem -> type == operat )
+	{
+		struct element *left_elem = ( struct element * )tree_get_elem( tree_get_next( node, left ) );
+		struct element *right_elem = ( struct element * )tree_get_elem( tree_get_next( node, right ) );
+	
+		struct element *result = ( struct element * )calloc( 1, sizeof( struct element ) );
+
+		if( elem -> oper == sub_cmd )
+		{
+			if( left_elem -> type == koefficient && left_elem -> value == 0 )
+			{
+				left_elem -> value = -1;
+				elem -> oper = mul_cmd;
+
+				return 1;
+			}
+		}	
+
+		if( elem -> oper == add_cmd || elem -> oper == sub_cmd )
+		{
+			#define IF( side1, side2 )									\
+			if( side1##_elem -> type == koefficient && side1##_elem -> value == 0 )				\
+			{												\
+				if( tree_get_next( tree_get_parent( node ), left ) == node )				\
+					tree_set( tree_get_parent( node ), left, tree_get_next( node, side2 ) );	\
+															\
+				else											\
+					tree_set( tree_get_parent( node ), right, tree_get_next( node, side2 ) );	\
+															\
+				del_branch( tree, tree_get_next( node, side1 ) );					\
+															\
+				return 1;										\
+			}
+
+			IF( left, right )
+			IF( right, left )
+
+			#undef IF
+		}
+
+		if( elem -> oper == mul_cmd )
+		{
+			#define IF( side1, side2 )									\
+			if( side1##_elem -> type == koefficient && side1##_elem -> value == 1 )				\
+			{												\
+				if( tree_get_next( tree_get_parent( node ), left ) == node )				\
+					tree_set( tree_get_parent( node ), left, tree_get_next( node, side2 ) );	\
+															\
+				else											\
+					tree_set( tree_get_parent( node ), right, tree_get_next( node, side2 ) );	\
+															\
+				del_branch( tree, tree_get_next( node, side1 ) );					\
+															\
+				return 1;										\
+			}
+
+			IF( left, right )
+			IF( right, left )
+
+			#undef IF
+
+			#define IF( side1, side2 )										\
+			if( side1##_elem -> type == koefficient && side1##_elem -> value == 0 )				\
+			{												\
+				if( tree_get_next( tree_get_parent( node ), left ) == node )				\
+					tree_set( tree_get_parent( node ), left, tree_get_next( node, side1 ) );	\
+															\
+				else											\
+					tree_set( tree_get_parent( node ), left, tree_get_next( node, side1 ) );	\
+															\
+				del_branch( tree, tree_get_next( node, side2 ) );					\
+															\
+				return 1;										\
+			}
+
+			IF( left, right )
+			IF( right, left )
+
+			#undef IF
+		}
+
+		if( left_elem -> type == koefficient && right_elem -> type == koefficient )
+		{
+			result -> type = koefficient;
+
+			switch( elem -> oper )
+			{
+				#define CASE( cmd, operatr )							\
+				case cmd:									\
+				{										\
+					result -> value = left_elem -> value operatr right_elem -> value;	\
+														\
+					break;									\
+				}
+
+				CASE( add_cmd, + )
+				CASE( sub_cmd, - )
+				CASE( div_cmd, / )
+				CASE( mul_cmd, * )
+
+				#undef CASE
+			}
+
+			change_elem( tree, node, result );
+
+			del_branch( tree, tree_get_next( node, left ) );
+			del_branch( tree, tree_get_next( node, right ) );
+
+			return 1;
+		}
+
+		free( result );
+	}
+
+	int kostyl = 0;
+
+	if( tree_get_next( node, left ) != NULL )
+		kostyl += optimizer1( tree, tree_get_next( node, left ) );
+	
+	if( tree_get_next( node, right ) != NULL )
+		kostyl += optimizer1( tree, tree_get_next( node, right ) );
+
+	return kostyl;
+}
+
+int optimizer2( struct tree_t *tree, struct tree_node_t *node )
+{
+	check_pointer( node, 0 );
+
+	struct element *elem = ( struct element * )tree_get_elem( node );
+	
+	if( elem -> type == operat )
+	{
+		struct element *left_elem = ( struct element * )tree_get_elem( tree_get_next( node, left ) );
+		struct element *right_elem = ( struct element * )tree_get_elem( tree_get_next( node, right ) );
+
+		if( elem -> oper == mul_cmd )
+		{
+			if( ( left_elem -> type == koefficient && left_elem -> value == 0 ) || ( right_elem -> type == koefficient && right_elem -> value == 0 ) )
+			{
+				del_branch( tree, node );
+	
+				return 1;
+			}
+		}
+	}
+
+	if( tree_get_next( node, left ) != NULL )
+		optimizer2( tree, tree_get_next( node, left ) );
+	
+	if( tree_get_next( node, right ) != NULL )
+		optimizer2( tree, tree_get_next( node, right ) );
+	
+	return 0;
+}
+
+int optimize_it( struct tree_t *tree )
+{
+	check_pointer( tree, 0 );
+
+	while( optimizer1( tree, tree_get_root( tree ) ) )
+		;
+
+	optimizer2( tree, tree_get_root( tree ) );
 }
 
 int texer( FILE* doc, struct tree_node_t *node )
@@ -383,6 +557,17 @@ int texer( FILE* doc, struct tree_node_t *node )
 							break;						\
 						}							\
 													\
+						if( !strcmp( #operatr, "^" ) )				\
+						{							\
+							fprintf( doc, "\\left(" );			\
+							texer( doc, tree_get_next( node, left ) );	\
+							fprintf( doc, "\\right)" );			\
+							fprintf( doc, "^" );				\
+							texer( doc, tree_get_next( node, right ) );	\
+													\
+							break;						\
+						}							\
+													\
 						else							\
 						{								\
 							if( strcmp( #operatr, "*" ) && strcmp( #operatr, "/" ) )	\
@@ -399,7 +584,7 @@ int texer( FILE* doc, struct tree_node_t *node )
 													\
 					if( !strcmp( #cmd_type, "uno" ) )				\
 					{								\
-						fprintf( doc, #operatr"\\left(" );			\
+						fprintf( doc, "\\"#operatr"\\left(" );			\
 						texer( doc, tree_get_next( node, left ) );		\
 						fprintf( doc, "\\right)" );				\
 													\

@@ -5,7 +5,7 @@ typedef struct tree_t tree_t;
 typedef int ( *print_function )( FILE *, void * );
 typedef int ( *cmp_function )( void *, void * );
 
-#define tree_create( type, name, func, root_elem )							\
+#define tree_create( type, name, func, root_elem )						\
 struct tree_t *name = tree_construct( sizeof( type ), print_##func, cmp_##func, root_elem );	\
 if( name == NULL )										\
 	print_log( "ERROR: CANT CREATE TREE\n" );
