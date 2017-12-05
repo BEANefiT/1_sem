@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "./../log/log.h"
 #include "./../tree_t/tree.h"
 #include "diff.h"
@@ -38,9 +39,9 @@ int main( int argc, char *argv[] )
 		printf( "ERROR: Enter base name\n" );
 		return 0;
 	}
-	Do( akinator.src = getsrc( argv[ 1 ], &akinator ) );
+	Do( getsrc( argv[ 1 ], &akinator ) );
 	
-	if( akinator.src == NULL )
+	if( akinator.buffer == NULL )
 	{
 		printf( "ERROR: '%s' no such file or directory\n", argv[ 1 ] );
 		return 0;
@@ -61,11 +62,11 @@ int aki_constr( struct aki_structure *akinator )
 {
 	check_pointer( akinator, 1 );
 
-	akinator -> src_sz = 0;
-	akinator -> src = NULL;
+	akinator -> buf_sz = 0;
+	akinator -> buffer = NULL;
 	akinator -> tree = NULL;
 	akinator -> newtree = NULL;
-	akinator -> src_cur = 3;
+	akinator -> src_cur = 0;
 }
 
 char *getsrc( char *src_name, struct aki_structure *akinator )
@@ -80,14 +81,22 @@ char *getsrc( char *src_name, struct aki_structure *akinator )
 		return NULL;
 	}
 
-	Do( akinator -> src_sz = src_sz( src_file ) );
-	char *src = ( char * )calloc( sizeof( char ), akinator -> src_sz );
-	fread( src, sizeof( char ), akinator -> src_sz, src_file );
+	size_t src_sz = get_file_sz( src_file );
+
+	char *src = ( char * )calloc( src_sz, sizeof( char ) );
+	fread( src, sizeof( char ), src_sz, src_file );
 	fclose( src_file );
-	return src;
+
+	akinator -> buffer = ( char * )calloc( src_sz, sizeof( char ) );
+
+	for( size_t i = 0; i < src_sz; i++ )
+		if( src[ i ] != ' ' && src[ i ] != '\n' && src[ i ] != '\t' )
+			akinator -> buffer[ akinator -> buf_sz ++ ] = src[ i ];
+
+	akinator -> buffer = ( char * )realloc( akinator -> buffer, akinator -> buf_sz * sizeof( char ) );
 }
 
-size_t src_sz( FILE *src )
+size_t get_file_sz( FILE *src )
 {
 	check_pointer( src, 0 );
 
@@ -97,49 +106,181 @@ size_t src_sz( FILE *src )
 	return sz;
 }
 
-int read_base( struct aki_structure *akinator, char *tmp )
-{
-	char *str = ( char * )calloc( MAX_PHRASE_LENGTH, sizeof( char ) );
-	size_t src_cur_delta = 0;
-
-	sscanf( akinator -> src + akinator -> src_cur, "%[^()]%n", str, &src_cur_delta );
-	akinator -> src_cur += src_cur_delta;
-	sscanf( akinator -> src + akinator -> src_cur, "%c", tmp );
-	akinator -> src_cur ++;
-
-	free( str );
-}
-
-int read_base_elem( struct aki_structure *akinator, struct tree_node_t *node, enum side_t side );
-
-int make_node( struct aki_structure *akinator, struct tree_node_t *node )
+int make_tree( struct aki_structure *akinator )
 {
 	check_pointer( akinator, 1 );
-	check_pointer( node, 1 );
 
-	char tmp = ' ';
+	struct element *root_tmp = ( struct element * )calloc( 1, sizeof( struct element ) );
+	tree_create( struct element, tree, struct_element, root_tmp );
+	akinator -> tree = tree;
 
-	read_base( akinator, &tmp );
-	if( tmp == '(' )
-	{ 
-		read_base_elem( akinator, node, left );
-	}
-	if( tmp == ')' )
+	struct tree_node_t *root = getG( akinator );
+	
+	tree_node_change( tree_get_root( akinator -> tree ), root );
+}
+
+struct tree_node_t *getG( struct aki_structure *akinator )
+{
+	return getE( akinator );
+}
+
+struct tree_node_t *getE( struct aki_structure *akinator )
+{
+	struct tree_node_t *node = getT( akinator );
+
+	while( ( akinator -> buffer[ akinator -> src_cur ] == '+' ) || ( akinator -> buffer[ akinator -> src_cur ] == '-' ) )
 	{
-		return 0;
+		char oper = akinator -> buffer[ akinator -> src_cur ++ ];
+
+		struct tree_node_t *node2 = getT( akinator );
+
+		if( oper == '+' )
+		{
+			struct tree_node_t *node_cp = tree_copy( akinator -> tree, node );
+
+			node = tree_node_change( node, ADD( akinator -> tree, node_cp, node2 ) );
+		}
+
+		else
+		{
+			struct tree_node_t *node_cp = tree_copy( akinator -> tree, node );
+
+			node = tree_node_change( node, SUB( akinator -> tree, node_cp, node2 ) );
+		}
 	}
 
-	read_base( akinator, &tmp );
-	if( tmp == '(' )
+	return node;
+}
+
+struct tree_node_t *getT( struct aki_structure *akinator )
+{
+	struct tree_node_t *node = getB( akinator );
+
+	while( ( akinator -> buffer[ akinator -> src_cur ] == '*' ) || ( akinator -> buffer[ akinator -> src_cur ] == '/' ) )
 	{
-		read_base_elem( akinator, node, right );
+		char oper = akinator -> buffer[ akinator -> src_cur ++ ];
+
+		struct tree_node_t *node2 = getB( akinator );
+
+		if( oper == '*' )
+		{
+			struct tree_node_t *node_cp = tree_copy( akinator -> tree, node );
+
+			node = tree_node_change( node, MUL( akinator -> tree, node_cp, node2 ) );
+		}
+
+		else
+		{
+			struct tree_node_t *node_cp = tree_copy( akinator -> tree, node );
+
+			node = tree_node_change( node, DIV( akinator -> tree, node_cp, node2 ) );
+		}
 	}
 
-	read_base( akinator, &tmp );
-	if( tmp == ')' )
+	return node;
+}
+
+struct tree_node_t *getB( struct aki_structure *akinator )
+{
+	struct tree_node_t *node = getP( akinator );
+
+	while( akinator -> buffer[ akinator -> src_cur ] == '^' )
 	{
-		return 0;
+		akinator -> src_cur ++;
+
+		struct tree_node_t *node_cp = tree_copy( akinator -> tree, node );
+
+		struct tree_node_t *node2 = getP( akinator );
+
+		node = tree_node_change( node, POW( akinator -> tree, node_cp, node2 ) );
 	}
+
+	return node;
+}
+
+struct tree_node_t *getP( struct aki_structure *akinator )
+{
+	if( akinator -> buffer[ akinator -> src_cur ] == '(' )
+	{
+		akinator -> src_cur ++;
+
+		struct tree_node_t *node = getE( akinator );
+
+		assert( akinator -> buffer[ akinator -> src_cur++ ] == ')' );
+
+		return node;
+	}
+
+	struct tree_node_t *node = getN( akinator );
+
+	if( node == NULL )
+		node = getF( akinator );
+
+	return node;
+}
+
+struct tree_node_t *getF( struct aki_structure *akinator )
+{
+	size_t src_cur_delta = 0;
+	char *cmd_name = ( char * )calloc( MAX_PHRASE_LENGTH, sizeof( char ) );
+
+	sscanf( akinator -> buffer + akinator -> src_cur, "%[a-zA-Z]%n", cmd_name, &src_cur_delta );
+	akinator -> src_cur += src_cur_delta;
+
+	struct element *func = ( struct element * )calloc( 1, sizeof( struct element ) );
+	func -> type = variable;
+
+	#define OPER_DEF( cmd, cmd_type, FUNC, operatr, code )			\
+	if( !strcmp( #cmd_type, "uno" ) && !strcmp( #operatr, cmd_name ) )	\
+	{									\
+		func -> type = operat;						\
+		func -> oper = cmd;						\
+	}
+
+	#include "operators.h"
+	#undef OPER_DEF
+
+	if( func -> type == variable )
+	{
+		func -> var = ( char * )calloc( strlen( cmd_name ) + 1, sizeof( char ) );
+		
+		strcpy( func -> var, cmd_name );
+	}
+
+	struct tree_node_t *node = tree_node_construct( akinator -> tree, NULL, func );
+	
+	if( func -> type == operat )
+	{
+		if( akinator -> buffer[ akinator -> src_cur ] == '(' )
+		{
+			akinator -> src_cur ++;
+			tree_set( node, left, getE( akinator ) );
+	
+			assert( akinator -> buffer[ akinator -> src_cur ] == ')' );
+		}
+		
+		else
+			tree_set( node, left, getN( akinator ) );
+	}
+
+	return node;
+}
+
+struct tree_node_t *getN( struct aki_structure *akinator )
+{
+	struct element *elem = ( struct element * )calloc( 1, sizeof( struct element ) );
+	elem -> type = koefficient;
+
+	size_t src_cur_delta = 0;
+
+	sscanf( akinator -> buffer + akinator -> src_cur, "%lg%n", &( elem -> value ), &src_cur_delta );
+
+	if( src_cur_delta == 0 )
+		return NULL;
+
+	akinator -> src_cur += src_cur_delta;
+
+	return tree_node_construct( akinator -> tree, NULL, elem );
 }
 
 int type_recognize( struct element *node, char *str )
@@ -161,64 +302,6 @@ int type_recognize( struct element *node, char *str )
 
 	#include "operators.h"
 	#undef OPER_DEF
-}
-
-
-int read_base_elem( struct aki_structure *akinator, struct tree_node_t *node, enum side_t side )
-{
-	double koeff = 0;
-	char *str = ( char * )calloc( MAX_PHRASE_LENGTH, sizeof( char ) );
-	size_t src_cur_delta = 0;
-	sscanf( akinator -> src + akinator -> src_cur, "%[^\'\"]%n", str, &src_cur_delta );
-	akinator -> src_cur += src_cur_delta;
-	sscanf( akinator -> src + akinator -> src_cur, "%*1[\'\"]%lg%*1[\'\"]%n", &koeff, &src_cur_delta );
-	struct element *newnode = NULL;
-	if( src_cur_delta != 0 )
-	{
-		newnode = ( struct element * )calloc( 1, sizeof( struct element ) );
-		newnode -> value = koeff;
-		newnode -> type = koefficient;
-	}
-	if( src_cur_delta == 0 )
-	{
-		sscanf( akinator -> src + akinator -> src_cur, "%*1[\'\"]%[^\'\"]%*1[\'\"]%n", str, &src_cur_delta );
-		newnode = ( struct element * )calloc( 1, sizeof( struct element ) );
-		type_recognize( newnode, str );
-		
-	}
-	akinator -> src_cur += src_cur_delta;
-
-	Do( make_node( akinator, tree_add( akinator -> tree, node, side, newnode ) ) );
-}
-
-int make_tree( struct aki_structure *akinator )
-{
-	check_pointer( akinator, 1 );
-	
-	double koeff = 0;
-	char *str = ( char * )calloc( MAX_PHRASE_LENGTH, sizeof( char ) );
-	size_t src_cur_delta = 0;
-
-	sscanf( akinator -> src + akinator -> src_cur, "%[^\'\"]%n", str, &src_cur_delta );
-	akinator -> src_cur += src_cur_delta;
-	sscanf( akinator -> src + akinator -> src_cur, "%*1[\'\"]%lg%*1[\'\"]%n", &koeff, &src_cur_delta );
-	struct element *root_elem = NULL;
-	if( src_cur_delta != 0 )
-		{
-			root_elem = ( struct element * )calloc( 1, sizeof( struct element ) );
-			root_elem -> value = koeff;
-			root_elem -> type = koefficient;
-		}
-	if( src_cur_delta == 0 )
-		{
-			sscanf( akinator -> src + akinator -> src_cur, "%*1[\'\"]%[^\'\"]%*1[\'\"]%n", str, &src_cur_delta );
-			root_elem = ( struct element * )calloc( 1, sizeof( struct element ) );
-			type_recognize( root_elem, str );
-		}
-	akinator -> src_cur += src_cur_delta;
-	tree_create( struct element, tree, struct_element, root_elem );
-	akinator -> tree = tree;
-	Do( make_node( akinator, tree_get_root( akinator -> tree ) ) );
 }
 
 struct tree_node_t *num( struct tree_t *tree, double val );
@@ -352,7 +435,6 @@ int optimizer1( struct tree_t *tree, struct tree_node_t **node_ptr )
 	struct tree_node_t *node = *node_ptr;
 
 	struct element *elem = ( struct element * )tree_get_elem( node );
-	printf( "blyaa(((((9\n" );
 	
 	if( elem -> type == operat )
 	{
@@ -523,7 +605,12 @@ int texer( FILE* doc, struct tree_node_t *node )
 	{
 		case koefficient:
 		{
-			fprintf( doc, "{%lg}", elem -> value );
+			if( elem -> value < 0 )
+				fprintf( doc, "(%lg)", elem -> value );
+
+			else
+				fprintf( doc, "{%lg}", elem -> value );
+
 			break;
 		}
 		

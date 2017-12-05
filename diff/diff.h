@@ -2,8 +2,8 @@ struct aki_structure
 {
 	struct tree_t *tree;
 	struct tree_t *newtree;
-	char *src;
-	size_t src_sz;
+	char *buffer;
+	size_t buf_sz;
 	size_t src_cur;
 };
 
@@ -17,7 +17,7 @@ enum type_t
 typedef struct element element;
 
 struct tree_t *	start( struct tree_t *tree );
-size_t 		src_sz( FILE *src );
+size_t 		get_file_sz( FILE *src );
 char*		getsrc( char *src_name, struct aki_structure *akinator );
 int 		aki_constr( struct aki_structure *akinator );
 int 		make_tree( struct aki_structure *akinator );
@@ -32,6 +32,13 @@ struct tree_node_t *SUB( struct tree_t *tree, struct tree_node_t *a, struct tree
 struct tree_node_t *MUL( struct tree_t *tree, struct tree_node_t *a, struct tree_node_t *b );
 struct tree_node_t *DIV( struct tree_t *tree, struct tree_node_t *a, struct tree_node_t *b );
 
+struct tree_node_t *getG( struct aki_structure *akinator );
+struct tree_node_t *getE( struct aki_structure *akinator );
+struct tree_node_t *getT( struct aki_structure *akinator );
+struct tree_node_t *getB( struct aki_structure *akinator );
+struct tree_node_t *getP( struct aki_structure *akinator );
+struct tree_node_t *getF( struct aki_structure *akinator );
+struct tree_node_t *getN( struct aki_structure *akinator );
 
 #define OPERAT_CODE_bin( NAME, symbol )	\
 struct tree_node_t *NAME( struct tree_t *tree, struct tree_node_t *a, struct tree_node_t *b );

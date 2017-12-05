@@ -206,6 +206,18 @@ int tree_set( struct tree_node_t *parent, enum side_t side, struct tree_node_t *
 	node -> parent = parent;
 }
 
+struct tree_node_t *tree_node_change( struct tree_node_t *node, struct tree_node_t *newnode )
+{
+	check_pointer( node, 0 );
+	check_pointer( newnode, 0 );
+
+	node -> left = newnode -> left;
+	node -> right = newnode -> right;
+	node -> elem = newnode -> elem;
+
+	return node;
+}
+
 int dump_node( FILE *dump, struct tree_t *tree, struct tree_node_t *node, struct tree_node_t *parent )
 {
 
