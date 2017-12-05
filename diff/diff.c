@@ -256,7 +256,7 @@ struct tree_node_t *getF( struct aki_structure *akinator )
 			akinator -> src_cur ++;
 			tree_set( node, left, getE( akinator ) );
 	
-			assert( akinator -> buffer[ akinator -> src_cur ] == ')' );
+			assert( akinator -> buffer[ akinator -> src_cur ++ ] == ')' );
 		}
 		
 		else
@@ -505,6 +505,13 @@ int optimizer1( struct tree_t *tree, struct tree_node_t **node_ptr )
 			if( right_elem -> value == 1 )
 			{
 				*node_ptr = tree_node_change( node, L );
+
+				return 1;
+			}
+
+			if( right_elem -> value == 0 )
+			{
+				*node_ptr = tree_node_change( node, num( tree, 1 ) );
 
 				return 1;
 			}
