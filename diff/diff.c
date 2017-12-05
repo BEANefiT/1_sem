@@ -49,7 +49,7 @@ int main( int argc, char *argv[] )
 
 	Do( make_tree( &akinator ) );
 
-	Do( akinator.newtree = start( akinator.tree ) );
+	Do( akinator.newtree = start( &akinator ) );
 
 	Do( dumper( akinator.newtree ) );
 
@@ -67,6 +67,7 @@ int aki_constr( struct aki_structure *akinator )
 	akinator -> tree = NULL;
 	akinator -> newtree = NULL;
 	akinator -> src_cur = 0;
+	akinator -> dvar = NULL;
 }
 
 char *getsrc( char *src_name, struct aki_structure *akinator )
@@ -117,6 +118,12 @@ int make_tree( struct aki_structure *akinator )
 	struct tree_node_t *root = getG( akinator );
 	
 	tree_node_change( tree_get_root( akinator -> tree ), root );
+
+	akinator -> dvar = ( char * )calloc( MAX_PHRASE_LENGTH, sizeof( char ) );
+
+	sscanf( akinator -> buffer + akinator -> src_cur + 1, "%[a-zA-Z]", akinator -> dvar );
+
+	akinator -> dvar = ( char * )realloc( akinator -> dvar, ( strlen( akinator -> dvar ) + 1 ) * sizeof( char ) );
 }
 
 struct tree_node_t *getG( struct aki_structure *akinator )
@@ -306,14 +313,14 @@ int type_recognize( struct element *node, char *str )
 
 struct tree_node_t *num( struct tree_t *tree, double val );
 
-struct tree_node_t *diff( struct tree_t *tree, struct tree_node_t *node )
+struct tree_node_t *diff( struct tree_t *tree, struct tree_node_t *node, char *dvar )
 {
 	check_pointer( tree, NULL );
 	check_pointer( node, NULL );
 
-	if( isNUM ) return num( tree, 0 );
+	if( isDVAR ) return num( tree, 1 );
 
-	if( isVAR ) return num( tree, 1 );
+	if( ( isNUM ) || ( isVAR ) ) return num( tree, 0 );
 
 	switch( OPERAT )
 	{
@@ -410,11 +417,11 @@ struct tree_node_t *NAME( struct tree_t *tree, struct tree_node_t *a )				\
 #undef OPERAT_CODE_bin
 #undef OPERAT_CODE_uno
 
-struct tree_t *start( struct tree_t *tree )
+struct tree_t *start( struct aki_structure *akinator )
 {
-	check_pointer( tree, NULL );
+	check_pointer( akinator, NULL );
 
-	struct tree_node_t *root = diff( tree, tree_get_root( tree ) );
+	struct tree_node_t *root = diff( akinator -> tree, tree_get_root( akinator -> tree ), akinator -> dvar );
 	
 	tree_create( struct element, newtree, struct_element, tree_get_elem( root ) );
 
@@ -493,6 +500,16 @@ int optimizer1( struct tree_t *tree, struct tree_node_t **node_ptr )
 			}
 
 			if( right_elem -> type == koefficient && right_elem -> value == 0 )
+			{
+				*node_ptr = tree_node_change( node, num( tree, 0 ) );
+
+				return 1;
+			}
+		}
+
+		if( elem -> oper == div_cmd )
+		{
+			if( left_elem -> type == koefficient && left_elem -> value == 0 )
 			{
 				*node_ptr = tree_node_change( node, num( tree, 0 ) );
 
@@ -699,14 +716,12 @@ int tex_it( struct aki_structure *akinator )
 	FILE *doc = fopen( "tex", "w" );
 	fprintf( doc,	"\\documentclass[14pt,twoside,a4paper]{report}\n"
 			"\\begin{document}\n"
-			"function is:\n"
-			"$$" );
+			"$$f = \n" );
 
 	Do( texer( doc, tree_get_root( akinator -> tree ) ) );
 
 	fprintf( doc, 	"$$\n"
-			"derivative is:\n"
-			"$$" );
+			"$$\\frac{df}{d%s} = ", akinator -> dvar );
 
 	Do( texer( doc, tree_get_root( akinator -> newtree ) ) );
 

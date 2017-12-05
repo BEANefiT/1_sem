@@ -1,10 +1,11 @@
 struct aki_structure
 {
-	struct tree_t *tree;
-	struct tree_t *newtree;
-	char *buffer;
-	size_t buf_sz;
-	size_t src_cur;
+	struct tree_t*	tree;
+	struct tree_t*	newtree;
+	char*		buffer;
+	size_t 		buf_sz;
+	size_t 		src_cur;
+	char*		dvar;
 };
 
 enum type_t
@@ -16,7 +17,7 @@ enum type_t
 
 typedef struct element element;
 
-struct tree_t *	start( struct tree_t *tree );
+struct tree_t *	start( struct aki_structure *akinator );
 size_t 		get_file_sz( FILE *src );
 char*		getsrc( char *src_name, struct aki_structure *akinator );
 int 		aki_constr( struct aki_structure *akinator );
@@ -25,12 +26,7 @@ int		tex_it( struct aki_structure *akinator );
 int 		optimize_it( struct tree_t *tree );
 
 int print_struct_element( FILE *out, void *elem );
-int cmp_struct_element( void *elem1, void *elem2 ){}
-
-struct tree_node_t *ADD( struct tree_t *tree, struct tree_node_t *a, struct tree_node_t *b );
-struct tree_node_t *SUB( struct tree_t *tree, struct tree_node_t *a, struct tree_node_t *b );
-struct tree_node_t *MUL( struct tree_t *tree, struct tree_node_t *a, struct tree_node_t *b );
-struct tree_node_t *DIV( struct tree_t *tree, struct tree_node_t *a, struct tree_node_t *b );
+int   cmp_struct_element( void *elem1, void *elem2 ){}
 
 struct tree_node_t *getG( struct aki_structure *akinator );
 struct tree_node_t *getE( struct aki_structure *akinator );
@@ -60,11 +56,13 @@ struct tree_node_t *NAME( struct tree_t *tree, struct tree_node_t *a );
 
 #define R tree_copy( tree, tree_get_next( node, right ) )
 
-#define dL diff( tree, tree_get_next( node, left ) )
+#define dL diff( tree, tree_get_next( node, left ), dvar )
 
-#define dR diff( tree, tree_get_next( node, right ) )
+#define dR diff( tree, tree_get_next( node, right ), dvar )
 
 #define isNUM ( ( struct element * )tree_get_elem( node ) ) -> type == koefficient
+
+#define isDVAR ( ( ( struct element * )tree_get_elem( node ) ) -> type == variable ) && ( !strcmp( ( ( struct element * )tree_get_elem( node ) ) -> var, dvar ) )
 
 #define isVAR ( ( struct element * )tree_get_elem( node ) ) -> type == variable
 
