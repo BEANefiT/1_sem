@@ -145,7 +145,7 @@ int make_node( struct aki_structure *akinator, struct tree_node_t *node )
 int type_recognize( struct element *node, char *str )
 {
 	node -> type = variable;
-	node -> var = ( char * )calloc( strlen( str ), sizeof( char ) );
+	node -> var = ( char * )calloc( strlen( str ) + 1, sizeof( char ) );
 	strcpy( node -> var, str );
 	
 	#define OPER_DEF( cmd, cmd_type, FUNC, operatr, code )		\
@@ -343,25 +343,27 @@ struct tree_t *start( struct tree_t *tree )
 	return newtree;
 }
 
-int optimizer1( struct tree_t *tree, struct tree_node_t *node )
+int optimizer1( struct tree_t *tree, struct tree_node_t **node_ptr )
 {
-	check_pointer( node, 0 );
+	check_pointer( node_ptr, 0 );
+	check_pointer( *node_ptr, 0 );
+	check_pointer( tree, 0 );
+	
+	struct tree_node_t *node = *node_ptr;
 
 	struct element *elem = ( struct element * )tree_get_elem( node );
+	printf( "blyaa(((((9\n" );
 	
 	if( elem -> type == operat )
 	{
-		struct element *left_elem = ( struct element * )tree_get_elem( tree_get_next( node, left ) );
+		struct element *left_elem  = ( struct element * )tree_get_elem( tree_get_next( node, left ) );
 		struct element *right_elem = ( struct element * )tree_get_elem( tree_get_next( node, right ) );
 	
-		struct element *result = ( struct element * )calloc( 1, sizeof( struct element ) );
-
 		if( elem -> oper == sub_cmd )
 		{
 			if( left_elem -> type == koefficient && left_elem -> value == 0 )
 			{
-				left_elem -> value = -1;
-				elem -> oper = mul_cmd;
+				*node_ptr = tree_node_change( node, MUL( tree, num( tree, -1 ), R ) );
 
 				return 1;
 			}
@@ -369,79 +371,73 @@ int optimizer1( struct tree_t *tree, struct tree_node_t *node )
 
 		if( elem -> oper == add_cmd || elem -> oper == sub_cmd )
 		{
-			#define IF( side1, side2 )									\
-			if( side1##_elem -> type == koefficient && side1##_elem -> value == 0 )				\
-			{												\
-				if( tree_get_next( tree_get_parent( node ), left ) == node )				\
-					tree_set( tree_get_parent( node ), left, tree_get_next( node, side2 ) );	\
-															\
-				else											\
-					tree_set( tree_get_parent( node ), right, tree_get_next( node, side2 ) );	\
-															\
-				del_branch( tree, tree_get_next( node, side1 ) );					\
-															\
-				return 1;										\
+			if( left_elem -> type == koefficient && left_elem -> value == 0 )				
+			{
+				*node_ptr = tree_node_change( node, R );
+
+				return 1;							
 			}
 
-			IF( left, right )
-			IF( right, left )
+			if( right_elem -> type == koefficient && right_elem -> value == 0 )
+			{
+				*node_ptr = tree_node_change( node, L );
 
-			#undef IF
+				return 1;
+			}
 		}
 
 		if( elem -> oper == mul_cmd )
 		{
-			#define IF( side1, side2 )									\
-			if( side1##_elem -> type == koefficient && side1##_elem -> value == 1 )				\
-			{												\
-				if( tree_get_next( tree_get_parent( node ), left ) == node )				\
-					tree_set( tree_get_parent( node ), left, tree_get_next( node, side2 ) );	\
-															\
-				else											\
-					tree_set( tree_get_parent( node ), right, tree_get_next( node, side2 ) );	\
-															\
-				del_branch( tree, tree_get_next( node, side1 ) );					\
-															\
-				return 1;										\
+			if( left_elem -> type == koefficient && left_elem -> value == 1 )				
+			{					
+				*node_ptr = tree_node_change( node, R );
+
+				return 1;
+
+			}
+			
+			if( right_elem -> type == koefficient && right_elem -> value == 1 )
+			{
+				*node_ptr = tree_node_change( node, L );
+
+				return 1;
 			}
 
-			IF( left, right )
-			IF( right, left )
+			if( left_elem -> type == koefficient && left_elem -> value == 0 )				
+			{					
+				*node_ptr = tree_node_change( node, num( tree, 0 ) );
 
-			#undef IF
-
-			#define IF( side1, side2 )										\
-			if( side1##_elem -> type == koefficient && side1##_elem -> value == 0 )				\
-			{												\
-				if( tree_get_next( tree_get_parent( node ), left ) == node )				\
-					tree_set( tree_get_parent( node ), left, tree_get_next( node, side1 ) );	\
-															\
-				else											\
-					tree_set( tree_get_parent( node ), left, tree_get_next( node, side1 ) );	\
-															\
-				del_branch( tree, tree_get_next( node, side2 ) );					\
-															\
-				return 1;										\
+				return 1;
 			}
 
-			IF( left, right )
-			IF( right, left )
+			if( right_elem -> type == koefficient && right_elem -> value == 0 )
+			{
+				*node_ptr = tree_node_change( node, num( tree, 0 ) );
 
-			#undef IF
+				return 1;
+			}
+		}
+
+		if( elem -> oper == pow_cmd )
+		{
+			if( right_elem -> value == 1 )
+			{
+				*node_ptr = tree_node_change( node, L );
+
+				return 1;
+			}
 		}
 
 		if( left_elem -> type == koefficient && right_elem -> type == koefficient )
 		{
-			result -> type = koefficient;
-
 			switch( elem -> oper )
 			{
-				#define CASE( cmd, operatr )							\
-				case cmd:									\
-				{										\
-					result -> value = left_elem -> value operatr right_elem -> value;	\
-														\
-					break;									\
+				#define CASE( cmd, operatr )								\
+				case cmd:										\
+				{											\
+					*node_ptr = tree_node_change( node, num( tree, left_elem -> value operatr right_elem -> value ) );	\
+															\
+					break;										\
 				}
 
 				CASE( add_cmd, + )
@@ -452,24 +448,23 @@ int optimizer1( struct tree_t *tree, struct tree_node_t *node )
 				#undef CASE
 			}
 
-			change_elem( tree, node, result );
-
-			del_branch( tree, tree_get_next( node, left ) );
-			del_branch( tree, tree_get_next( node, right ) );
-
 			return 1;
 		}
-
-		free( result );
 	}
 
 	int kostyl = 0;
 
-	if( tree_get_next( node, left ) != NULL )
-		kostyl += optimizer1( tree, tree_get_next( node, left ) );
-	
-	if( tree_get_next( node, right ) != NULL )
-		kostyl += optimizer1( tree, tree_get_next( node, right ) );
+	if( tree_get_next( *node_ptr, left ) != NULL )
+	{
+		struct tree_node_t *nextnode = tree_get_next( *node_ptr, left );
+		kostyl += optimizer1( tree, &nextnode );
+	}
+
+	if( tree_get_next( *node_ptr, right ) != NULL )
+	{
+		struct tree_node_t *nextnode = tree_get_next( *node_ptr, right );
+		kostyl += optimizer1( tree, &nextnode );
+	}
 
 	return kostyl;
 }
@@ -509,7 +504,9 @@ int optimize_it( struct tree_t *tree )
 {
 	check_pointer( tree, 0 );
 
-	while( optimizer1( tree, tree_get_root( tree ) ) )
+	struct tree_node_t *root = tree_get_root( tree );
+
+	while( optimizer1( tree, &root ) )
 		;
 
 	optimizer2( tree, tree_get_root( tree ) );

@@ -27,6 +27,7 @@ struct tree_node_t*	tree_get_root( struct tree_t *tree );
 struct tree_node_t*	tree_get_left( struct tree_t *tree );
 struct tree_node_t*	tree_copy_node( struct tree_node_t *node );
 struct tree_node_t*	tree_copy( struct tree_t *tree, struct tree_node_t *node );
+struct tree_node_t*	tree_node_change( struct tree_node_t *node, struct tree_node_t *newnode );
 
 void*			tree_get_elem( struct tree_node_t *node );
 
