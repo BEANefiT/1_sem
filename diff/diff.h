@@ -67,3 +67,11 @@ struct tree_node_t *NAME( struct tree_t *tree, struct tree_node_t *a );
 #define isVAR ( ( struct element * )tree_get_elem( node ) ) -> type == variable
 
 #define OPERAT ( ( struct element * )tree_get_elem( node ) ) -> oper
+
+#define L_L tree_copy( tree, tree_get_next( L, left ) )
+
+#define L_R tree_copy( tree, tree_get_next( L, right ) )
+
+#define R_L tree_copy( tree, tree_get_next( R, left ) )
+
+#define R_R tree_copy( tree, tree_get_next( R, right ) )

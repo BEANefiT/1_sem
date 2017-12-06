@@ -11,5 +11,6 @@ OPER_DEF( pow_cmd, bin, POW, ^,   diff( tree, EXP( tree, MUL( tree, R, LN( tree,
 OPER_DEF( tan_cmd, uno, TAN, tan, DIV( tree, dL, POW( tree, COS( tree, L ), num( tree, 2 ) ) ) )
 OPER_DEF( cot_cmd, uno, COT, cot, MUL( tree, num( tree, -1 ), DIV( tree, dL, POW( tree, SIN( tree, L ), num( tree, 2 ) ) ) ) )
 OPER_DEF( exp_cmd, uno, EXP, exp, MUL( tree, dL, EXP( tree, L ) ) )
+OPER_DEF( sqrt_cmd, uno, SQRT, sqrt, DIV( tree, dL, MUL( tree, num( tree, 2 ), SQRT( tree, L ) ) ) )
 
 #endif /*OPER_DEF*/

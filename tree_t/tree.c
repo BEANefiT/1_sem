@@ -170,6 +170,9 @@ struct tree_node_t *tree_get_left( struct tree_t *tree )
 struct tree_node_t *tree_copy_node( struct tree_node_t *node )
 {
 	struct tree_node_t *newnode = ( struct tree_node_t * )calloc( 1, sizeof( struct tree_node_t ) );
+	newnode -> parent = NULL;
+	newnode -> left = NULL;
+	newnode -> right = NULL;
 	newnode -> elem = node -> elem;
 	return newnode;
 }
@@ -184,10 +187,10 @@ struct tree_node_t *tree_copy( struct tree_t *tree, struct tree_node_t *node )
 	struct tree_node_t *newnode = tree_copy_node( node );
 
 	if( tree_get_next( node, left ) )
-		newnode -> left = tree_copy( tree, node -> left );
+		tree_set( newnode, left, tree_copy( tree, node -> left ) );
 
 	if( tree_get_next( node, right ) )
-		newnode -> right = tree_copy( tree, node -> right );
+		tree_set( newnode, right, tree_copy( tree, node -> right ) );
 
 	return newnode;
 }
@@ -215,6 +218,12 @@ struct tree_node_t *tree_node_change( struct tree_node_t *node, struct tree_node
 	node -> right = newnode -> right;
 	node -> elem = newnode -> elem;
 
+	if( node -> left != NULL )
+		node -> left -> parent = node;
+
+	if( node -> right != NULL )
+		node -> right -> parent = node;
+
 	return node;
 }
 
@@ -224,14 +233,10 @@ int dump_node( FILE *dump, struct tree_t *tree, struct tree_node_t *node, struct
 	fprintf( dump, "Node%p [shape = record, label = \"{ %p | ", node, node );
 	tree -> printer( dump, node -> elem );
 	fprintf( dump, " } | " );
-	if( node -> left != NULL )
-		fprintf( dump, "left = %p ", node -> left );
-	if( node -> left == NULL )
-		fprintf( dump, "left = NULL " );
-	if( node -> right != NULL )
-		fprintf( dump, "| right = %p ", node -> right );
-	if( node -> right == NULL )
-		fprintf( dump, "| right = NULL" );
+	if( node -> parent != NULL )
+		fprintf( dump, "parent = %p ", node -> parent );
+	if( node -> parent == NULL )
+		fprintf( dump, "parent = NULL " );
 	fprintf( dump, "\"]\n" );
 	if( node -> left != NULL )
 		dump_node( dump, tree, node -> left, node );

@@ -290,27 +290,6 @@ struct tree_node_t *getN( struct aki_structure *akinator )
 	return tree_node_construct( akinator -> tree, NULL, elem );
 }
 
-int type_recognize( struct element *node, char *str )
-{
-	node -> type = variable;
-	node -> var = ( char * )calloc( strlen( str ) + 1, sizeof( char ) );
-	strcpy( node -> var, str );
-	
-	#define OPER_DEF( cmd, cmd_type, FUNC, operatr, code )		\
-	do								\
-	{								\
-		if( !strcmp( str, #operatr ) )				\
-		{							\
-			node -> type = operat;				\
-			node -> oper = cmd;				\
-			return 0;					\
-		}							\
-	}while( 0 );
-
-	#include "operators.h"
-	#undef OPER_DEF
-}
-
 struct tree_node_t *num( struct tree_t *tree, double val );
 
 struct tree_node_t *diff( struct tree_t *tree, struct tree_node_t *node, char *dvar )
@@ -505,6 +484,20 @@ int optimizer1( struct tree_t *tree, struct tree_node_t **node_ptr )
 
 				return 1;
 			}
+
+			if( right_elem -> type == operat && right_elem -> oper == ln_cmd && left_elem -> oper != ln_cmd )
+			{
+				*node_ptr = tree_node_change( node, LN( tree, POW( tree, R_L, L ) ) );
+
+				return 1;
+			}
+
+			if( left_elem -> type == operat && left_elem -> oper == ln_cmd && right_elem -> oper != ln_cmd )
+			{
+				*node_ptr = tree_node_change( node, LN( tree, POW( tree, L_L, R ) ) );
+
+				return 1;
+			}
 		}
 
 		if( elem -> oper == div_cmd )
@@ -529,6 +522,30 @@ int optimizer1( struct tree_t *tree, struct tree_node_t **node_ptr )
 			if( right_elem -> value == 0 )
 			{
 				*node_ptr = tree_node_change( node, num( tree, 1 ) );
+
+				return 1;
+			}
+		}
+
+		if( elem -> oper == ln_cmd )
+		{
+			struct element *child_elem = ( struct element * )tree_get_elem( tree_get_next( node, left ) );
+
+			if( child_elem -> type == operat && child_elem -> oper == exp_cmd )
+			{
+				*node_ptr = tree_node_change( node, L_L );
+
+				return 1;
+			}
+		}
+
+		if( elem -> oper == exp_cmd )
+		{
+			struct element *child_elem = ( struct element * )tree_get_elem( tree_get_next( node, left ) );
+
+			if( child_elem -> type == operat && child_elem -> oper == ln_cmd )
+			{
+				*node_ptr = tree_node_change( node, L_L );
 
 				return 1;
 			}
@@ -661,43 +678,85 @@ int texer( FILE* doc, struct tree_node_t *node )
 							fprintf( doc, "}{" );				\
 							texer( doc, tree_get_next( node, right ) );	\
 							fprintf( doc, "}" );				\
-													\
-							break;						\
-						}							\
-													\
-						if( !strcmp( #operatr, "^" ) )				\
-						{							\
-							fprintf( doc, "\\left(" );			\
-							texer( doc, tree_get_next( node, left ) );	\
-							fprintf( doc, "\\right)" );			\
-							fprintf( doc, "^" );				\
-							texer( doc, tree_get_next( node, right ) );	\
-													\
-							break;						\
-						}							\
-													\
-						else							\
-						{								\
-							if( strcmp( #operatr, "*" ) && strcmp( #operatr, "/" ) )	\
-								fprintf( doc, "\\left(" );				\
-							texer( doc, tree_get_next( node, left ) );			\
-							fprintf( doc, #operatr );					\
-							texer( doc, tree_get_next( node, right ) );			\
-							if( strcmp( #operatr, "*" ) && strcmp( #operatr, "/" ) )	\
-								fprintf( doc, "\\right)" );			\
-													\
-							break;						\
-						}							\
-					}								\
-													\
-					if( !strcmp( #cmd_type, "uno" ) )				\
-					{								\
-						fprintf( doc, "\\"#operatr"\\left(" );			\
-						texer( doc, tree_get_next( node, left ) );		\
-						fprintf( doc, "\\right)" );				\
-													\
-						break;							\
-					}								\
+														\
+							break;								\
+						}										\
+																	\
+						if( !strcmp( #operatr, "^" ) )									\
+						{													\
+							if( ( ( struct element * )tree_get_elem( tree_get_next( node, left ) ) ) -> type == operat )	\
+								fprintf( doc, "\\left(" );								\
+							texer( doc, tree_get_next( node, left ) );							\
+							if( ( ( struct element * )tree_get_elem( tree_get_next( node, left ) ) ) -> type == operat )	\
+								fprintf( doc, "\\right)" );								\
+							fprintf( doc, "^" );										\
+							texer( doc, tree_get_next( node, right ) );							\
+																			\
+							break;												\
+						}													\
+																			\
+						else													\
+						{													\
+							if( !strcmp( #operatr, "+" ) || !strcmp( #operatr, "-" ) )					\
+								if( tree_get_parent( node ) != NULL )								\
+									if												\
+									(												\
+										( ( struct element * )tree_get_elem( tree_get_parent( node ) ) ) -> oper != add_cmd	\
+									&& 												\
+										( ( struct element * )tree_get_elem( tree_get_parent( node ) ) ) -> oper != sub_cmd 	\
+									)												\
+										fprintf( doc, "\\left(" );							\
+																			\
+							texer( doc, tree_get_next( node, left ) );						\
+							fprintf( doc, #operatr );								\
+							texer( doc, tree_get_next( node, right ) );						\
+																		\
+							if( !strcmp( #operatr, "+" ) || !strcmp( #operatr, "-" ) )				\
+								if( tree_get_parent( node ) != NULL )							\
+									if											\
+									( 												\
+										( ( struct element * )tree_get_elem( tree_get_parent( node ) ) ) -> oper != add_cmd	\
+									&& 												\
+										( ( struct element * )tree_get_elem( tree_get_parent( node ) ) ) -> oper != sub_cmd	\
+									)												\
+										fprintf( doc, "\\right)" );							\
+																			\
+							break;											\
+						}												\
+					}													\
+																		\
+					if( !strcmp( #cmd_type, "uno" ) )									\
+					{													\
+						fprintf( doc, "\\"#operatr );									\
+																		\
+						if												\
+						(												\
+							( ( struct element * )tree_get_elem( tree_get_next( node, left ) ) ) -> type == operat		\
+						&&													\
+							( ( struct element * )tree_get_elem( tree_get_next( node, left ) ) ) -> oper != add_cmd		\
+						&&													\
+							( ( struct element * )tree_get_elem( tree_get_next( node, left ) ) ) -> oper != sub_cmd		\
+						)													\
+							fprintf( doc, "\\left(" );								\
+																		\
+																		\
+						fprintf( doc, "{" );										\
+						texer( doc, tree_get_next( node, left ) );							\
+						fprintf( doc, "}" );										\
+																		\
+																		\
+						if												\
+						(													\
+							( ( struct element * )tree_get_elem( tree_get_next( node, left ) ) ) -> type == operat		\
+						&&													\
+							( ( struct element * )tree_get_elem( tree_get_next( node, left ) ) ) -> oper != add_cmd		\
+						&&													\
+							( ( struct element * )tree_get_elem( tree_get_next( node, left ) ) ) -> oper != sub_cmd		\
+						)													\
+							fprintf( doc, "\\right)" );								\
+																		\
+						break;												\
+					}													\
 				}
 
 				#include "operators.h"
