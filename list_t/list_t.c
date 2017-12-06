@@ -1,54 +1,66 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <list_t.h>
+#include "./../log/log.h"
+#include "list_t.h"
 
-struct list_elem
+struct list_node_t
 {
-	elem_t elem;
-	int next;
-	int prev;
+	void*	elem;
+	int 	next;
+	int 	prev;
 };
 
 struct list_t
 {
-	struct list_elem *data;
-	int head;
-	int tail;
-	int free;
-	size_t size;
-	size_t capacity;
+	print_function 		printer;
+	struct list_node_t*	data;
+	int 			head;
+	int 			tail;
+	int 			free;
+	size_t 			size;
+	size_t 			capacity;
 };
 
-int list_configure( struct list_t *list )
+int list_construct( struct list_t *list, print_function print_f )
 {
-	int tmp = list -> free;
-	for( int i = list -> capacity; i < list -> size - 1; i++ )
-	{
-		( list -> data )[ tmp ].prev = -1;
-		tmp = ( list -> data )[ tmp ].next;
-	}
-	( list -> data )[ tmp ].next = -1;
-	( list -> data )[ tmp ].prev = -1;
-	if( list -> capacity != 0 )
-	{
-		( list -> data )[ list -> head ].prev = -1;
-		( list -> data )[ list -> tail ].next = list -> free;
-	}
+	check_pointer( list, 1 );
+
+	list -> printer  =    print_f;
+	list -> data 	 =    ( struct list_node_t * )calloc( 1, sizeof( struct list_node_t ) );
+	list -> head 	 =    0;
+	list -> tail 	 =    0;
+	list -> free 	 =    0;
+	list -> size 	 =    0;
+	list -> capacity =    1;
+
+	list -> data[ 0 ].prev = -1;
+	list -> data[ 0 ].next = -1;
 }
 
-int list_construct( struct list_t *list )
+int push_tail( struct list_t *list, void *elem )
 {
-	list -> data = ( struct list_elem * )calloc( 1, sizeof( struct list_elem ));
-	list -> head = 0;
-	list -> tail = 0;
-	list -> free = 0;
-	list -> size = 1;
-	list -> capacity = 0;
-	( list -> data )[ 0 ].prev = -1;
-	( list -> data )[ 0 ].next = -1;
+	if( list -> capacity <= list -> size )
+	{
+		//list_resize( list, 2 * list -> size );
+	}
+
+	list -> data[ list -> free ].elem = elem;
+
+	if( list -> size != 0 )
+	{
+		list -> data[ list -> free ].prev = list -> tail;
+		list -> data[ list -> tail ].next = list -> free;
+	}
+
+	list -> tail = list -> free;
+	
+	if( list -> size != 0 )
+		list -> free = list -> data[ list -> free ].next;
+
+	list -> size ++;
 }
 
-int list_resize( struct list_t *list, size_t size )
+/*int list_resize( struct list_t *list, size_t size )
 {
 	list -> data = ( struct list_elem * )realloc( list -> data, size * sizeof( struct list_elem ) );
 	int tmp = list -> free;
@@ -63,26 +75,6 @@ int list_resize( struct list_t *list, size_t size )
 	}
 	list -> size = size;
 	list_configure( list );
-}
-
-int push_tail( struct list_t *list, elem_t elem )
-{
-	if( list -> capacity >= list -> size )
-	{
-		list_resize( list, 2 * list -> size );
-	}
-	( list -> data )[ list -> free ].elem = elem;
-	if( list -> capacity != 0 )
-	{
-		( list -> data )[ list -> free ].prev = list -> tail;
-	}
-	list -> tail = list -> free;
-	list -> free = ( list -> data )[ list -> free ].next;
-	if( list -> capacity == list -> size )
-		list -> free = -1;
-	( list -> data )[ list -> tail ].next = list -> free;
-	list_configure( list );
-	list -> capacity ++;
 }
 
 int push_head( struct list_t *list, elem_t elem )
@@ -173,58 +165,57 @@ int compress( struct list_t *list )
 	newdata[ list -> size - 1 ].next = -1;
 	newdata[ 0 ].prev = list -> free;
 	list -> data = newdata;
-}
+}*/
 
-elem_t list_get_elem( struct list_t *list, int pos )
+void *list_get_elem( struct list_node_t *node )
 {
-	if( list -> capacity <= 0 )
-	{
-		return -1;
-	}
-	elem_t result = ( list -> data )[ pos ].elem;
-	( list -> data )[ pos ].elem = -1;
-	( list -> data )[ ( list -> data )[ pos ].prev ].next = ( list -> data )[ pos ].next;
-	( list -> data )[ ( list -> data )[ pos ].next ].prev = ( list -> data )[ pos ].prev;
-	( list -> data )[ pos ].prev = -1;
-	( list -> data )[ pos ].next = list -> free;
-	( list -> data )[ list -> free ].prev = pos;
-	list -> free = pos;
-	list -> capacity --;
-	return result;
+	check_pointer( node, NULL );
+
+	return node -> elem;
 }
 
-int dumper( struct list_t *list )
+int list_print( struct list_t *list, FILE *out, void *elem )
+{
+	check_pointer( list, 1 );
+	check_pointer( out, 1 );
+	check_pointer( elem, 1 );
+
+	list -> printer( out, elem );
+}
+
+#define default_printer( tp, type )			\
+int print_##type( FILE *out, void *elem )		\
+{							\
+	fprintf( out, "%"#tp, *( type * )elem );	\
+}
+
+default_printer( d, int );
+default_printer( lg, double );
+default_printer( c, char );
+default_printer( zd, size_t );
+default_printer( g, float );
+
+#undef default_printer
+
+int dumper( FILE *dump, struct list_t *list, int index )
+{
+	fprintf( dump, "node%d [ shape = record, label = \" index = %d | { prev = %d | elem = ", index, index, list -> data[ index ].prev );
+	list_print( list, dump, &( list -> data[ index ] ) );
+	fprintf( dump, " | next = %d }\" ]\n", list -> data[ index ].next );
+	fprintf( dump, "node%d -> node%d\n", index, list -> data[ index ].next );
+
+	if( list -> data[ index ].next != -1 )
+		dumper( dump, list, list -> data[ index ].next );
+}
+
+int dump_it( struct list_t *list )
 {
 	FILE *dump = fopen( "dump", "w" );
 	fprintf( dump, 	"digraph dump\n"
 			"{\n"
 			"rankdir = LR\n");
-	int tmp = list -> head;
-	for( int i = 0; i < list -> capacity; i++ )
-	{
-		fprintf( dump, "Node%d [ shape = record, label = \"<index> index = %d | { <prev> prev = %d | elem = %d | <next> next = %d }\" ]\n", tmp, tmp, ( list -> data )[ tmp ].prev, ( list -> data )[ tmp ].elem, ( list -> data )[ tmp ].next );
-		tmp = ( list -> data )[ tmp ].next;
-	}
 
-	fprintf( dump, "Node%d [shape = record, label = \"<index> index = %d( free ) | { <prev> prev = %d | FREE | <next> next = %d }\" ]\n", tmp, tmp, ( list -> data )[ tmp ].prev, ( list -> data )[ tmp ].next );
-	tmp = ( list -> data )[ tmp ].next;
+	dumper( dump, list, list -> head );
 
-	for( int i = list -> capacity + 1; i < list -> size; i++ )
-	{
-		fprintf( dump, "Node%d [ shape = record, label = \"<index> index = %d | { <prev> prev = %d | FREE | <next> next = %d }\" ]\n", tmp, tmp, ( list -> data )[ tmp ].prev, ( list -> data )[ tmp ].next );
-		tmp = ( list -> data )[ tmp ].next;
-	}
-
-	for( int i = 0; i < list -> size; i++ )
-	{
-		if( ( list -> data )[ i ].next != -1 )
-		{
-			fprintf( dump, "Node%d -> Node%d [color = green]\n", i, ( list -> data )[ i ].next );
-		}
-		if( ( list -> data )[ i ].prev != -1 )
-		{
-			fprintf( dump, "Node%d -> Node%d [color = blue]\n", i, ( list -> data )[ i ].prev );
-		}
-	}
 	fprintf( dump, "}" );
 }
