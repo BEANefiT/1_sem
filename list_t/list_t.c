@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "./../log/log.h"
 #include "list_t.h"
 
@@ -17,34 +18,45 @@ struct list_t
 	int 			head;
 	int 			tail;
 	int 			free;
+	int			elem_sz;
 	size_t 			size;
 	size_t 			capacity;
 };
 
-int list_construct( struct list_t *list, print_function print_f )
+struct list_t *list_construct( int elem_size, print_function print_f )
 {
-	check_pointer( list, 1 );
+	struct list_t *list = ( struct list_t * )calloc( 1, sizeof( struct list_t ) );
+	check_pointer( list, NULL );
 
 	list -> printer  =    print_f;
 	list -> data 	 =    ( struct list_node_t * )calloc( 1, sizeof( struct list_node_t ) );
 	list -> head 	 =    0;
 	list -> tail 	 =    0;
 	list -> free 	 =    0;
+	list -> elem_sz  =    elem_size;
 	list -> size 	 =    0;
 	list -> capacity =    1;
 
 	list -> data[ 0 ].prev = -1;
 	list -> data[ 0 ].next = -1;
+
+	return list;
 }
 
 int push_tail( struct list_t *list, void *elem )
 {
+	check_pointer( list, 1 );
+	check_pointer( elem, 1 );
+
 	if( list -> capacity <= list -> size )
 	{
-		//list_resize( list, 2 * list -> size );
+		list_resize( list, 2 * list -> capacity );
 	}
 
-	list -> data[ list -> free ].elem = elem;
+	list -> data[ list -> free ].elem = calloc( 1, list -> elem_sz );
+	check_pointer( list -> data[ list -> free ].elem, 1 );
+
+	memcpy( list -> data[ list -> free].elem, elem, list -> elem_sz );
 
 	if( list -> size != 0 )
 	{
@@ -54,78 +66,137 @@ int push_tail( struct list_t *list, void *elem )
 
 	list -> tail = list -> free;
 	
-	if( list -> size != 0 )
-		list -> free = list -> data[ list -> free ].next;
+	list -> free = list -> data[ list -> free ].next;
+	list -> data[ list -> tail ].next = list -> free;
+	list -> data[ list -> head ].prev = list -> free;
 
 	list -> size ++;
 }
 
-/*int list_resize( struct list_t *list, size_t size )
+int list_resize( struct list_t *list, size_t new_sz )
 {
-	list -> data = ( struct list_elem * )realloc( list -> data, size * sizeof( struct list_elem ) );
+	check_pointer( list, 1 );
+
+	list -> data = ( struct list_node_t * )realloc( list -> data, new_sz * sizeof( struct list_node_t ) );
+	check_pointer( list -> data, 1 );
+
 	int tmp = list -> free;
-	for( int i = list -> capacity; i < list -> size - 1; i++ )
+
+	for( int i = list -> size; i < list -> capacity - 1; i++ )
 	{
-		tmp = ( list -> data )[ tmp ].next;
+		tmp = list -> data[ tmp ].next;
 	}
-	( list -> data )[ tmp ].next = list -> size;
-	for( int i = list -> size; i < size - 1; i++ )
+
+	if( tmp == -1 )
 	{
-		( list -> data )[ i ].next = i + 1;
+		list -> free = list -> size;
+
+		tmp = list -> free;
 	}
-	list -> size = size;
-	list_configure( list );
+
+	list -> data[ tmp ].next = list -> size + 1;
+
+	for( int i = list -> size + 1; i < new_sz - 1; i ++ )
+		list -> data[ i ].next = i + 1;
+
+	list -> data[ new_sz - 1 ].next = -1;
+
+	list -> data[ list -> head ].prev = list -> free;
+	list -> data[ list -> tail ].next = list -> free;
+	list -> capacity = new_sz;
 }
 
-int push_head( struct list_t *list, elem_t elem )
+int push_head( struct list_t *list, void *elem )
 {
-	if( list -> capacity >= list -> size )
+	check_pointer( list, 1 );
+	check_pointer( elem, 1 );
+
+	if( list -> capacity <= list -> size )
 	{
-		list_resize( list, 2 * list -> size );
+		list_resize( list, 2 * list -> capacity );
 	}
-	( list -> data )[ list -> free ].elem = elem;
-	int tmp = list -> free;
-	( list -> data )[ list -> free ].next = list -> head;
+
+	list -> data[ list -> free ].elem = calloc( 1, list -> elem_sz );
+	check_pointer( list -> data[ list -> free ].elem, 1 );
+
+	memcpy( list -> data[ list -> free].elem, elem, list -> elem_sz );
+
+	int newfree = list -> data[ list -> free ].next;
+
+	if( list -> size != 0 )
+	{
+		list -> data[ list -> free ].next = list -> head;
+		list -> data[ list -> head ].prev = list -> free;
+	}
+
 	list -> head = list -> free;
-	list -> free = ( list -> data )[ tmp ].next;
-	( list -> data )[ list -> tail ].next = list -> free;
-	( list -> data )[ list -> head ].prev = list -> free;
-	list -> capacity ++;
+	
+	list -> free = newfree;
+	list -> data[ list -> tail ].next = list -> free;
+	list -> data[ list -> head ].prev = list -> free;
+
+	list -> size ++;
 }
 
-int pop_tail( struct list_t *list, elem_t *dest )
+int pop_tail( struct list_t *list, void *dest )
 {
-	if( list -> capacity <= 0 )
-	{
-		return list -> tail;
-	}
-	*dest = ( list -> data )[ list -> tail ].elem;
-	( list -> data )[ list -> tail ].elem = -1;
-	list -> free = list -> tail;
-	list -> tail = ( list -> data )[ list -> tail ].prev;
-	( list -> data )[ list -> head ].prev = list -> free;
-	list -> capacity --;
-	return list -> tail;
-}
+	check_pointer( list, 1 );
+	check_pointer( dest, 1 );
 
-int pop_head( struct list_t *list, elem_t *dest )
-{
-	if( list -> capacity <= 0 )
+	if( list -> size <= 0 )
 	{
-		return list -> head;
+		return -1;
 	}
 
-	*dest = ( list -> data )[ list -> head ].elem;
-	( list -> data )[ list -> head ].elem = -1;
-	list -> free = list -> head;
-	( list -> data )[ list -> free ].prev = -1;
-	( list -> data )[ list -> free ].next = ( list -> data )[ list -> tail ].next;
-	list -> head = ( list -> data )[ list -> head ].next;
-	( list -> data )[ list -> tail ].next = list -> free;
-	list -> capacity --;
-	return list -> head;
+	memcpy( dest, list -> data[ list -> tail ].elem, list -> elem_sz );
+
+	free( list -> data[ list -> tail ].elem );
+	list -> data[ list -> tail ].elem = NULL;
+
+	if( list -> size > 0 )
+	{
+		list -> data[ list -> head ].prev = list -> tail;
+		list -> free = list -> tail;
+		list -> tail = list -> data[ list -> tail ].prev;
+	}
+	
+	list -> data[ list -> free ].prev = -1;
+
+	list -> size--;
+	return 0;
 }
 
+int pop_head( struct list_t *list, void *dest )
+{
+	check_pointer( list, 1 );
+	check_pointer( dest, 1 );
+
+	if( list -> size <= 0 )
+	{
+		return -1;
+	}
+
+	memcpy( dest, list -> data[ list -> head ].elem, list -> elem_sz );
+
+	free( list -> data[ list -> head ].elem );
+	list -> data[ list -> head ].elem = NULL;
+
+	int oldfree = list -> free;
+
+	if( list -> size > 0 )
+	{
+		list -> data[ list -> tail ].next = list -> head;
+		list -> free = list -> head;
+		list -> head = list -> data[ list -> head ].next;
+	}
+
+	list -> data[ list -> free ].prev = -1;
+	list -> data[ list -> free ].next = oldfree;
+
+	list -> size--;
+	return 0;
+}
+/*
 int insert( struct list_t *list, int pos, elem_t elem )
 {
 	if( list -> capacity >= list -> size )
@@ -167,11 +238,9 @@ int compress( struct list_t *list )
 	list -> data = newdata;
 }*/
 
-void *list_get_elem( struct list_node_t *node )
+void *list_get_elem( struct list_node_t node )
 {
-	check_pointer( node, NULL );
-
-	return node -> elem;
+	return node.elem;
 }
 
 int list_print( struct list_t *list, FILE *out, void *elem )
@@ -199,10 +268,27 @@ default_printer( g, float );
 
 int dumper( FILE *dump, struct list_t *list, int index )
 {
-	fprintf( dump, "node%d [ shape = record, label = \" index = %d | { prev = %d | elem = ", index, index, list -> data[ index ].prev );
-	list_print( list, dump, &( list -> data[ index ] ) );
+	fprintf( dump, "node%d [ shape = record, label = \" index = %d | { prev = %d | ", index, index, list -> data[ index ].prev );
+
+	if( list -> data[ index ].elem == NULL )
+		fprintf( dump, "FREE" );
+
+	else
+	{
+		fprintf( dump, "elem = " );
+		list_print( list, dump, list_get_elem( list -> data[ index ] ) );
+	}
+
+	if( index == list -> head )
+		fprintf( dump, "( head )" );
+
+	if( index == list -> tail )
+		fprintf( dump, "( tail )" );
+
 	fprintf( dump, " | next = %d }\" ]\n", list -> data[ index ].next );
-	fprintf( dump, "node%d -> node%d\n", index, list -> data[ index ].next );
+
+	if( list -> data[ index ].next != -1 )
+		fprintf( dump, "node%d -> node%d\n", index, list -> data[ index ].next );
 
 	if( list -> data[ index ].next != -1 )
 		dumper( dump, list, list -> data[ index ].next );
