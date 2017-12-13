@@ -10,7 +10,7 @@ int 		push_tail( struct list_t *list, void* elem );
 int 		push_head( struct list_t *list, void* elem );
 int 		pop_tail( struct list_t *list, void *dest );
 int 		pop_head( struct list_t *list, void *dest );
-//int 		insert( struct list_t *list, int pos, void* elem );
+int 		insert( struct list_t *list, int pos, void *elem );
 //int 		compress( struct list_t *list );
 int 		dump_it( struct list_t *list );
 

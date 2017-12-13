@@ -71,6 +71,8 @@ int push_tail( struct list_t *list, void *elem )
 	list -> data[ list -> head ].prev = list -> free;
 
 	list -> size ++;
+
+	return 0;
 }
 
 int list_resize( struct list_t *list, size_t new_sz )
@@ -136,6 +138,8 @@ int push_head( struct list_t *list, void *elem )
 	list -> data[ list -> head ].prev = list -> free;
 
 	list -> size ++;
+
+	return 0;
 }
 
 int pop_tail( struct list_t *list, void *dest )
@@ -196,24 +200,46 @@ int pop_head( struct list_t *list, void *dest )
 	list -> size--;
 	return 0;
 }
-/*
-int insert( struct list_t *list, int pos, elem_t elem )
-{
-	if( list -> capacity >= list -> size )
-	{
-		list_resize( list, 2 * list -> size );
-	}
-	( list -> data )[ list -> free ].elem = elem;
-	( list -> data )[ list -> free ].prev = pos;
-	( list -> data )[ list -> free ].next = ( list -> data )[ pos ].next;
-	( list -> data )[ ( list -> data )[ pos ].next ].prev = list -> free;
-	( list -> data )[ pos ].next = list -> free;
-	list -> free = ( list -> data )[ list -> free ].next;
-	( list -> data )[ list -> head ].prev = list -> free;
-	( list -> data )[ list -> tail ].next = list -> free;
-	list -> capacity ++;
-}
 
+int insert( struct list_t *list, int pos, void *elem )
+{
+	check_pointer( list, 1 );
+	check_pointer( elem, 1 );
+
+	if( list -> size >= list -> capacity )
+	{
+		list_resize( list, 2 * list -> capacity );
+	}
+
+	if( pos == list -> tail )
+		return push_tail( list, elem );
+
+	if( list -> data[ pos ].elem == NULL )
+		return 1;
+
+	list -> data[ list -> free ].elem = calloc( 1, list -> elem_sz );
+	check_pointer( list -> data[ list -> free ].elem, 1 );
+
+	memcpy( list -> data[ list -> free].elem, elem, list -> elem_sz );
+
+	int next = list -> data[ pos ].next;
+	int nextfree = list -> data[ list -> free ].next;
+
+	list -> data[ list -> free ].prev = pos;
+	list -> data[ list -> free ].next = next;
+
+	list -> data[ pos ].next = list -> free;
+	list -> data[ next ].prev = list -> free;
+
+	list -> free = nextfree;
+	list -> data[ list -> head ].prev = list -> free;
+	list -> data[ list -> tail ].next = list -> free;
+
+	list -> size++;
+	
+	return 0;
+}
+/*
 int compress( struct list_t *list )
 {
 	int *tmp = ( int * )calloc( list -> size, sizeof( int ) );
