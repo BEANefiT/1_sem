@@ -1,4 +1,10 @@
+#ifndef __LEX_ANALYSER_H__
+#define __LEX_ANALYSER_H__
+
+#include "./../tree_t/tree.h"
+
 #define LEX_ANALYSER_MAX_VALUE_LENGTH 64
+#define MAX_LEXEMS_COUNT 8192
 
 enum key_t
 {
@@ -7,7 +13,8 @@ enum key_t
 	kw      = 3,
 	var     = 4,
 	br      = 5,
-	func    = 6
+	func    = 6,
+	params  = 7
 };
 
 enum kw_t
@@ -19,19 +26,30 @@ enum kw_t
 
 struct lex_t
 {
-	enum key_t    key;
-	char   	      value[ LEX_ANALYSER_MAX_VALUE_LENGTH ];
+	enum key_t	key;
+	char		value[ LEX_ANALYSER_MAX_VALUE_LENGTH ];
+	double		koeff;
+	struct func_t*	func;
 };
 
 struct analyser_t
 {
-	struct lex_t**    lexems;
-	char*             src;
-	size_t            lex_num;
-	size_t            src_sz;
+	struct lex_t*    lexems[ MAX_LEXEMS_COUNT ];
+	struct tree_t*   tree;
+	char*            src;
+	size_t           lex_num;
+	size_t           src_sz;
+	size_t           cur_pos;
 };
 
-int	make_lexems( struct analyser_t *analyser );
+struct func_t
+{
+	int		param_count;
+	struct lex_t**	params_arr;
+};
+
+int	analyser_constr( struct analyser_t *analyser );
+int	analyser_make_lexems( struct analyser_t *analyser );
 int	getKW( struct lex_t *lexem, char *word, int word_sz );
 int	getFUNC( struct lex_t *lexem, char *word, int word_sz );
 int	getVAR( struct lex_t *lexem, char *word, int word_sz );
@@ -71,11 +89,11 @@ if( is##ARG )										\
 }
 
 #define isTRASH \
-elem == ' ' || elem == '\n' || elem == '\t' || elem == '\v' || elem == ',' || elem || ';'
+elem == ' ' || elem == '\n' || elem == '\t' || elem == '\v' || elem == ',' || elem == ';'
 
 
 #define isVAL \
-'0' <= elem <= '9'
+'0' <= elem && elem <= '9'
 
 
 #define isOPER \
@@ -90,7 +108,7 @@ elem == '(' || elem == ')' || elem == '[' || elem == ']' || elem == '<' || elem 
 
 
 #define isKW \
-!( strcmp( word, "esli" ) * strcmp( word, "inache" ) * strcmp( word, "poka " ) )
+!( strcmp( word, "esli" ) * strcmp( word, "inache" ) * strcmp( word, "poka" ) )
 
 
 #define isFUNC \
@@ -99,3 +117,5 @@ elem == '(' || elem == ')' || elem == '[' || elem == ']' || elem == '<' || elem 
 
 #define isVAR \
 1 == 1 			// just to kill if()
+
+#endif /*__LEX_ANALYSER_H__*/

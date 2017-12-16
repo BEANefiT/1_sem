@@ -4,9 +4,16 @@
 #include "lex_analyser.h"
 #include "./../log/log.h"
 
-#define MAX_LEXEMS_COUNT 8192
+int analyser_constr( struct analyser_t *analyser )
+{
+	tree                   = NULL;
+	analyser -> src        = NULL;
+	analyser -> lex_num    = 0;
+	analyser -> src_sz     = 0;
+	analyset -> cur_pos    = 0;
+}
 
-int make_lexems( struct analyser_t *analyser )
+int analyser_make_lexems( struct analyser_t *analyser )
 {
 	check_pointer( analyser, 1 );
 
@@ -16,7 +23,7 @@ int make_lexems( struct analyser_t *analyser )
 	struct lex_t **lexems = ( struct lex_t ** )calloc( MAX_LEXEMS_COUNT, sizeof( struct lex_t * ) );
 	check_pointer( lexems, 1 );
 	
-	while( src - analyser -> src <= analyser -> src_sz )
+	while( src - analyser -> src < analyser -> src_sz )
 	{
 		char elem = *src;
 		
@@ -41,7 +48,10 @@ int make_lexems( struct analyser_t *analyser )
 		while( isLETTER || isVAL )
 		{
 			word[ word_sz++ ] = *(src++);
+			elem = *src;
 		}
+
+		word[ word_sz++ ] = '\0';
 
 		if( !word_sz )
 		{
