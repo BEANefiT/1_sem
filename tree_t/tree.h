@@ -1,5 +1,6 @@
 #ifndef __TREE_H__
 #define __TREE_H__
+
 typedef struct tree_node_t tree_node_t;
 typedef struct tree_t tree_t;
 typedef int ( *print_function )( FILE *, void * );

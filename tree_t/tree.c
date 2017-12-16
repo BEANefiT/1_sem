@@ -56,6 +56,16 @@ struct tree_t *tree_construct( int sz, print_function print_f, cmp_function cmp_
 	return tree;
 }
 
+struct tree_t *tree_constr( int sz, print_function print_f, cmp_function cmp_f, struct tree_node_t *root )
+{
+	struct tree_t *tree = ( struct tree_t * )calloc( 1, sizeof( struct tree_t ) );
+	tree -> printer = print_f;
+	tree -> comparer = cmp_f;
+	tree -> elem_sz = sz;
+	tree -> root = root;
+	return tree;
+}
+
 struct tree_node_t *tree_add( struct tree_t *tree, struct tree_node_t *parent, enum side_t side, void *elem )
 {
 	check_pointer( tree, NULL );
