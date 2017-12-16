@@ -6,11 +6,11 @@
 
 int analyser_constr( struct analyser_t *analyser )
 {
-	tree                   = NULL;
+	analyser -> tree                   = NULL;
 	analyser -> src        = NULL;
 	analyser -> lex_num    = 0;
 	analyser -> src_sz     = 0;
-	analyset -> cur_pos    = 0;
+	analyser -> cur_pos    = 0;
 }
 
 int analyser_make_lexems( struct analyser_t *analyser )

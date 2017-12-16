@@ -10,19 +10,20 @@ struct tree_node_t*	getFunc( struct analyser_t * );
 struct tree_node_t*	getI( struct analyser_t * );
 struct tree_node_t*	getAssn( struct analyser_t * );
 struct tree_node_t*	getKw( struct analyser_t * );
-struct tree_node_t*	getVAR( struct analyser_t * );
+struct tree_node_t*	getVar( struct analyser_t * );
 struct tree_node_t*	getE( struct analyser_t * );
 struct tree_node_t*	getT( struct analyser_t * );
 struct tree_node_t*	getB( struct analyser_t * );
 struct tree_node_t*	getP( struct analyser_t * );
-struct tree_node_t*
+struct tree_node_t*	getN( struct analyser_t * );
+int			analyser_make_tree( struct analyser_t * );
 
 #define check_syntax( symb )							\
 do										\
 {										\
-	if( *lexems[ cur_pos++ ] -> value != symb )				\
+	if( *analyser -> lexems[ analyser -> cur_pos++ ] -> value != symb )				\
 	{									\
-		printf( "Syntax error! lexems[ %zd ] != symb\n", cur_pos - 1 );	\
+		printf( "Syntax error! lexems[ %zd ] != symb\n", analyser -> cur_pos - 1 );	\
 										\
 		return NULL;							\
 	}									\

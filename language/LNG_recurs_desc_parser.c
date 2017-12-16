@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "LNG_recurs_desc_parser.h"
 
 int analyser_make_tree( struct analyser_t *analyser )
 {
@@ -64,7 +65,7 @@ struct tree_node_t *getFunc( struct analyser_t *analyser )
 	check_syntax( '[' );
 
 	struct tree_node_t *newnode = getI( analyser );
-	check_pointer( func_left, NULL );
+	check_pointer( newnode, NULL );
 
 	tree_set( node, left, newnode );
 
@@ -93,7 +94,7 @@ struct tree_node_t *getI( struct analyser_t *analyser )
 {
 	check_pointer( analyser, NULL );
 
-	struct tree_node_t node = getFunc( analyser );
+	struct tree_node_t *node = getFunc( analyser );
 
 	if( !node )
 		node = getAssn( analyser );
@@ -111,7 +112,7 @@ struct tree_node_t *getAssn( struct analyser_t *analyser )
 	if( analyser -> lexems[ analyser -> cur_pos ] -> key != 4 )
 		return NULL;
 
-	struct tree_node_t *var = getVAR( analyser );
+	struct tree_node_t *var = getVar( analyser );
 	check_pointer( var, NULL );
 
 	struct tree_node_t *node =
@@ -131,7 +132,7 @@ struct tree_node_t *getKw( struct analyser_t *analyser )
 {
 	check_pointer( analyser, NULL );
 
-	if( analyser -> lexems[ cur_pos ] -> key != 3 )
+	if( analyser -> lexems[ analyser -> cur_pos ] -> key != 3 )
 		return NULL;
 
 	struct tree_node_t *node =
@@ -173,7 +174,7 @@ struct tree_node_t *getKw( struct analyser_t *analyser )
 	check_syntax( '[' );
 
 	struct tree_node_t *newnode = getI( analyser );
-	check_pointer( func_left, NULL );
+	check_pointer( newnode, NULL );
 
 	tree_set( node, left, newnode );
 
@@ -198,7 +199,7 @@ struct tree_node_t *getKw( struct analyser_t *analyser )
 	return node;
 }
 
-struct tree_node_t *getVAR( struct analyser_t *analyser )
+struct tree_node_t *getVar( struct analyser_t *analyser )
 {
 	check_pointer( analyser, NULL );
 
@@ -219,7 +220,8 @@ struct tree_node_t *getE( struct analyser_t *analyser )
 
 	while( next_elem == '+' || next_elem == '-' )
 	{
-		struct tree_node_t *oper = analyser -> lexems[ analyser -> cur_pos++ ];
+		struct tree_node_t *oper =
+			tree_node_construct( analyser -> tree, NULL, analyser -> lexems[ analyser -> cur_pos++ ] );
 		check_pointer( oper, NULL );
 
 		struct tree_node_t *node2 = getT( analyser );
@@ -250,7 +252,8 @@ struct tree_node_t *getT( struct analyser_t *analyser )
 
 	while( next_elem == '*' || next_elem == '/' )
 	{
-		struct tree_node_t *oper = analyser -> lexems[ analyser -> cur_pos++ ];
+		struct tree_node_t *oper =
+			tree_node_construct( analyser -> tree, NULL, analyser -> lexems[ analyser -> cur_pos++ ] );
 		check_pointer( oper, NULL );
 
 		struct tree_node_t *node2 = getB( analyser );
@@ -281,7 +284,8 @@ struct tree_node_t *getB( struct analyser_t *analyser )
 
 	while( next_elem == '^' )
 	{
-		struct tree_node_t *oper = analyser -> lexems[ analyser -> cur_pos++ ];
+		struct tree_node_t *oper =
+			tree_node_construct( analyser -> tree, NULL, analyser -> lexems[ analyser -> cur_pos++ ] );
 		check_pointer( oper, NULL );
 
 		struct tree_node_t *node2 = getP( analyser );
@@ -327,13 +331,13 @@ struct tree_node_t *getN( struct analyser_t *analyser )
 {
 	check_pointer( analyser, NULL );
 
-	struct tree_node_t *node = getVAR( analyser );
+	struct tree_node_t *node = getVar( analyser );
 
 	if( !node )
 	{
-		if( analyser -> lexems[ analyser -> cur_node ] -> key != 1 )
+		if( analyser -> lexems[ analyser -> cur_pos ] -> key != 1 )
 		{
-			printf( "Syntax error: lexems[ %zd ] != val\n", cur_node );
+			printf( "Syntax error: lexems[ %zd ] != val\n", analyser -> cur_pos );
 
 			return NULL;
 		}
