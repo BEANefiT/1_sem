@@ -78,7 +78,7 @@ struct tree_node_t *getFunc( struct analyser_t *analyser )
 
 	{
 		struct tree_node_t *tmp_node = getI( analyser );
-		check_poiunter( tmp_node, NULL );
+		check_pointer( tmp_node, NULL );
 
 		tree_set( newnode, right, tmp_node );
 		
@@ -187,7 +187,7 @@ struct tree_node_t *getKw( struct analyser_t *analyser )
 
 	{
 		struct tree_node_t *tmp_node = getI( analyser );
-		check_poiunter( tmp_node, NULL );
+		check_pointer( tmp_node, NULL );
 
 		tree_set( newnode, right, tmp_node );
 		
