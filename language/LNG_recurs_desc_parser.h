@@ -19,6 +19,9 @@ struct tree_node_t*	getP( struct analyser_t * );
 struct tree_node_t*	getN( struct analyser_t * );
 int			analyser_make_tree( struct analyser_t * );
 
+int	cmp_lexem( void *elem1, void *elem2 );
+int	print_lexem( FILE *out, void *elem );
+
 #define check_syntax( symb )									\
 do												\
 {												\

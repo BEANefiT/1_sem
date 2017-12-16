@@ -6,7 +6,14 @@ int analyser_make_tree( struct analyser_t *analyser )
 {
 	check_pointer( analyser, 1 );
 
+	analyser -> tree = tree_constr( sizeof( struct lex_t ), print_lexem, cmp_lexem, NULL );
+
 	struct tree_node_t *root = getFunc( analyser );
+	printf( "%p\n", root );
+
+	analyser -> tree = tree_constr( sizeof( struct lex_t ), print_lexem, cmp_lexem, root );
+
+	return 0;
 }
 
 struct tree_node_t *getFunc( struct analyser_t *analyser )
@@ -102,6 +109,7 @@ struct tree_node_t *getI( struct analyser_t *analyser )
 	if( !node )
 		node = getKw( analyser );
 
+	printf( "nors\n" );
 	return node;
 }
 
@@ -347,3 +355,56 @@ struct tree_node_t *getN( struct analyser_t *analyser )
 
 	return node;
 }
+
+int print_lexem( FILE *out, void *elem )
+{
+	struct lex_t *lexem = ( struct lex_t * )elem;
+	fprintf( out, "key - '%d' ", lexem -> key );
+
+	switch( lexem -> key )
+	{
+		case 1:
+		{
+			fprintf( out, "koeff = '%lg'", lexem -> koeff );
+
+			break;
+		}
+
+		case 2:
+		{
+			fprintf( out, "oper = '%c'", *lexem -> value );
+
+			break;
+		}
+
+		case 3:
+		{
+			fprintf( out, "kw = '%s'", lexem -> value );
+
+			break;
+		}
+
+		case 4:
+		{
+			fprintf( out, "var = '%s'", lexem -> value );
+
+			break;
+		}
+
+		case 5:
+		{
+			fprintf( out, "br = '%c'", *lexem -> value );
+
+			break;
+		}
+
+		case 6:
+		{
+			fprintf( out, "func is '%s'", lexem -> value );
+
+			break;
+		}
+	}
+}
+
+int cmp_lexem( void *elem1, void *elem2 ){}

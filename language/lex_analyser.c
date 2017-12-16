@@ -78,9 +78,11 @@ char *getVAL( char *src, struct lex_t *lexem )
 	check_pointer( src, NULL );
 
 	int tmp = 0;
+	size_t delta_cur = 0;
 
-	while( *src >= '0' && *src <= '9' )
-		lexem -> value[ tmp ] = *( src++ );
+	sscanf( src, "%lg%n", &( lexem -> koeff ), &delta_cur );
+
+	src += delta_cur;
 
 	return src;
 }
