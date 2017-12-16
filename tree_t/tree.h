@@ -18,6 +18,7 @@ enum side_t
 };
 
 struct tree_t* 		tree_construct( int sz, print_function func_f, cmp_function cmp_f, void *root_elem );
+struct tree_t* 		tree_constr( int sz, print_function func_f, cmp_function cmp_f, struct tree_node_t *root );
 
 struct tree_node_t*	tree_node_construct( struct tree_t *tree, struct tree_node_t *parent, void *elem );
 struct tree_node_t* 	tree_add( struct tree_t *tree, struct tree_node_t *parent, enum side_t side, void *elem );
