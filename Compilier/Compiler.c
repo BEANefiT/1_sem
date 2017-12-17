@@ -1,5 +1,5 @@
 #define _Compilier_
-#define label_amount 20
+#define label_amount 128
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -27,7 +27,9 @@ int Compilier_constr( struct Compilier_structure *Compilier )
 	Compilier -> src_sz = 0;
 	Compilier -> src = NULL;
 	Compilier -> exe_sz = 0;
-	Compilier -> labels = ( size_t * )calloc( label_amount, sizeof( size_t ) );
+	Compilier -> labels =
+		( struct labels_t ** )calloc( label_amount, sizeof( struct labels_t * ) );
+	Compilier -> lbl_count = 0;
 	Compilier -> exe = NULL;
 	Compilier -> exe_sz = 0;
 }
@@ -53,7 +55,8 @@ size_t srcSize( FILE *src )
 
 int compile( struct Compilier_structure *Compilier )
 {
-	#define DEF_CMD( NAME,  name, num, Cmplr_code2, Cmplr_code1, CPU_code ) const int CMD_##NAME = num;
+	#define DEF_CMD( NAME,  name, num, Cmplr_code2, Cmplr_code1, CPU_code )	\
+		const int CMD_##NAME = num;
 
 	#include <commands.h>
 

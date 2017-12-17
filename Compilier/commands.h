@@ -1,4 +1,7 @@
 #ifdef DEF_CMD
+
+#define MAX_LABEL_LENGTH 64
+
 DEF_CMD( PUSH, push, 1, {
 				int push_type = 0;
 				void *arg = calloc( 1, sizeof( int ) );
@@ -88,9 +91,21 @@ DEF_CMD( OUT, out, 12, { to_exe( &CMD_OUT, int ); }, sizeof( int ), {
 									printf( "%lg\n", value );
 								    });
 DEF_CMD( LABEL, label, 13, ,  0;
-					int label = -1;
-					from_src( %d, &label );
-					( Compilier -> labels )[ label ] = ( size_t )exe_cur - ( size_t )( Compilier -> exe );
+					char *label = ( char * )calloc( MAX_LABEL_LENGTH, sizeof( char ) );
+
+					from_src( %s, label );
+
+					struct labels_t *newlabel =
+						( struct labels_t * )calloc( 1, sizeof( struct labels_t ) );
+
+					newlabel -> name =
+						( char * )calloc( strlen( label ), sizeof( char ) );
+
+					strcpy( newlabel -> name, label );
+					newlabel -> pos =
+						( size_t )exe_cur - ( size_t )( Compilier -> exe );
+
+					Compilier -> labels[ Compilier -> lbl_count++ ] = newlabel;
 				,
 
 				{
@@ -265,12 +280,21 @@ do									\
 	memcpy( arg, &reg_num, sizeof( int ) );				\
 } while( 0 )
 
-#define CMD_JMP_code()							\
-do									\
-{									\
-	int label = -1;							\
-	from_src( %d, &label );						\
-	to_exe( Compilier -> labels + label, size_t );			\
+#define CMD_JMP_code()								\
+do										\
+{										\
+	char *label = ( char * )calloc( MAX_LABEL_LENGTH, sizeof( char ) );	\
+	from_src( %s, label );							\
+										\
+	for( int i = 0; i < Compilier -> lbl_count; i++ )			\
+	{									\
+		if( !strcmp( Compilier -> labels[ i ] -> name, label ) )	\
+		{								\
+			to_exe( &( Compilier -> labels[ i ] -> pos ), size_t );	\
+										\
+			break;							\
+		}								\
+	}									\
 } while( 0 )
 
 #define ifreg( tmp ) strcmp( tmp, "ax" ) == 0 || strcmp( tmp, "bx" ) == 0 || strcmp( tmp, "cx" ) == 0 || strcmp( tmp, "dx" ) == 0
