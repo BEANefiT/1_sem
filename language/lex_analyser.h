@@ -14,15 +14,19 @@ enum key_t
 	var     = 4,
 	br      = 5,
 	func    = 6,
-	params  = 7
+	params	= 7,
+	conds	= 8
 };
+
+#define DEF_KW( kw, num, conds ) \
+	kw = num,
 
 enum kw_t
 {
-	esli      = 1,
-	inache    = 2,
-	poka      = 3
+	#include "kwrds.h"
 };
+
+#undef DEF_KW
 
 struct lex_t
 {

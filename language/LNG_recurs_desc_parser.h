@@ -27,7 +27,7 @@ do												\
 {												\
 	if( *analyser -> lexems[ analyser -> cur_pos++ ] -> value != symb )			\
 	{											\
-		printf( "Syntax error! lexems[ %zd ] != symb\n", analyser -> cur_pos - 1 );	\
+		printf( "Syntax error! lexems[ %zd ] != "#symb"\n", analyser -> cur_pos - 1 );	\
 												\
 		return NULL;									\
 	}											\

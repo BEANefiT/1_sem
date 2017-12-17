@@ -9,7 +9,6 @@ int analyser_make_tree( struct analyser_t *analyser )
 	analyser -> tree = tree_constr( sizeof( struct lex_t ), print_lexem, cmp_lexem, NULL );
 
 	struct tree_node_t *root = getFunc( analyser );
-	printf( "%p\n", root );
 
 	analyser -> tree = tree_constr( sizeof( struct lex_t ), print_lexem, cmp_lexem, root );
 
@@ -109,7 +108,6 @@ struct tree_node_t *getI( struct analyser_t *analyser )
 	if( !node )
 		node = getKw( analyser );
 
-	printf( "nors\n" );
 	return node;
 }
 
@@ -117,7 +115,7 @@ struct tree_node_t *getAssn( struct analyser_t *analyser )
 {
 	check_pointer( analyser, NULL );
 
-	if( analyser -> lexems[ analyser -> cur_pos ] -> key != 4 )
+	if( *analyser -> lexems[ analyser -> cur_pos + 1] -> value != '=' )
 		return NULL;
 
 	struct tree_node_t *var = getVar( analyser );
@@ -147,44 +145,56 @@ struct tree_node_t *getKw( struct analyser_t *analyser )
 		tree_node_construct( analyser -> tree, NULL, analyser -> lexems[ analyser -> cur_pos ] );
 	check_pointer( node, NULL );
 
+	struct lex_t *cond_num = ( struct lex_t * )calloc( 1, sizeof( struct lex_t ) );
+	check_pointer( cond_num, NULL );
+
+	cond_num -> key = 8;
+
+	#define DEF_KW( kw, num, conds )						\
+		case num + '0':								\
+		{									\
+			*cond_num -> value = conds + '0';				\
+											\
+			struct tree_node_t *conds_node =				\
+				tree_node_construct( analyser -> tree, node, cond_num );\
+											\
+			tree_set( node, left, conds_node );				\
+											\
+			if( conds == 0 )						\
+				break;							\
+											\
+			check_syntax( '(' );						\
+											\
+			struct tree_node_t *tmp_node = conds_node;			\
+											\
+			for( int i = 0; i < conds; i++ )				\
+			{								\
+				struct tree_node_t *cond = getE( analyser );		\
+				check_pointer( cond, NULL );				\
+											\
+				tree_set( tmp_node, left, cond );			\
+											\
+				tmp_node = cond;					\
+			}								\
+											\
+			check_syntax( ')' );						\
+											\
+			break;								\
+		}
+
 	switch( *analyser -> lexems[ analyser -> cur_pos++ ] -> value )
 	{
-		case '1':
-		{
-			check_syntax( '(' );
-			
-			struct tree_node_t *cond = getE( analyser );
-			check_pointer( cond, NULL );
-
-			check_syntax( ')' );
-
-			break;
-		}
-
-		case '2':
-		{
-			break;
-		}
-
-		case '3':
-		{
-			check_syntax( '(' );
-			
-			struct tree_node_t *cond = getE( analyser );
-			check_pointer( cond, NULL );
-
-			check_syntax( ')' );
-
-			break;
-		}
+		#include "kwrds.h"
 	}
-	
+
+	#undef DEF_KW
+
 	check_syntax( '[' );
 
 	struct tree_node_t *newnode = getI( analyser );
 	check_pointer( newnode, NULL );
 
-	tree_set( node, left, newnode );
+	tree_set( tree_get_next( node, left ), right, newnode );
 
 	while
 	(
@@ -238,8 +248,8 @@ struct tree_node_t *getE( struct analyser_t *analyser )
 		struct tree_node_t *node_cp = tree_copy( analyser -> tree, node );
 		check_pointer( node_cp, NULL );
 
-		tree_set( oper, left, node_cp );
-		tree_set( oper, right, node2 );
+		tree_set( oper, left, node2 );
+		tree_set( node2, right, node_cp );
 
 		node = tree_node_change( node, oper );
 
@@ -270,8 +280,8 @@ struct tree_node_t *getT( struct analyser_t *analyser )
 		struct tree_node_t *node_cp = tree_copy( analyser -> tree, node );
 		check_pointer( node_cp, NULL );
 
-		tree_set( oper, left, node_cp );
-		tree_set( oper, right, node2 );
+		tree_set( oper, left, node2 );
+		tree_set( node2, right, node_cp );
 
 		node = tree_node_change( node, oper );
 
@@ -302,8 +312,8 @@ struct tree_node_t *getB( struct analyser_t *analyser )
 		struct tree_node_t *node_cp = tree_copy( analyser -> tree, node );
 		check_pointer( node_cp, NULL );
 
-		tree_set( oper, left, node_cp );
-		tree_set( oper, right, node2 );
+		tree_set( oper, left, node2 );
+		tree_set( node2, right, node_cp );
 
 		node = tree_node_change( node, oper );
 
@@ -344,11 +354,7 @@ struct tree_node_t *getN( struct analyser_t *analyser )
 	if( !node )
 	{
 		if( analyser -> lexems[ analyser -> cur_pos ] -> key != 1 )
-		{
-			printf( "Syntax error: lexems[ %zd ] != val\n", analyser -> cur_pos );
-
 			return NULL;
-		}
 
 		node = tree_node_construct( analyser -> tree, NULL, analyser -> lexems[ analyser -> cur_pos++ ] );
 	}
@@ -359,48 +365,61 @@ struct tree_node_t *getN( struct analyser_t *analyser )
 int print_lexem( FILE *out, void *elem )
 {
 	struct lex_t *lexem = ( struct lex_t * )elem;
-	fprintf( out, "key - '%d' ", lexem -> key );
 
 	switch( lexem -> key )
 	{
 		case 1:
 		{
-			fprintf( out, "koeff = '%lg'", lexem -> koeff );
+			fprintf( out, "key - 'val' | '%lg'", lexem -> koeff );
 
 			break;
 		}
 
 		case 2:
 		{
-			fprintf( out, "oper = '%c'", *lexem -> value );
+			fprintf( out, "key - 'oper' | '%c'", *lexem -> value );
 
 			break;
 		}
 
 		case 3:
 		{
-			fprintf( out, "kw = '%s'", lexem -> value );
+			fprintf( out, "key - 'kw' | '%s'", lexem -> value );
 
 			break;
 		}
 
 		case 4:
 		{
-			fprintf( out, "var = '%s'", lexem -> value );
+			fprintf( out, "key - 'var' | '%s'", lexem -> value );
 
 			break;
 		}
 
 		case 5:
 		{
-			fprintf( out, "br = '%c'", *lexem -> value );
+			fprintf( out, "key - 'br' | '%c'", *lexem -> value );
 
 			break;
 		}
 
 		case 6:
 		{
-			fprintf( out, "func is '%s'", lexem -> value );
+			fprintf( out, "key - 'func' | '%s'", lexem -> value );
+
+			break;
+		}
+
+		case 7:
+		{
+			fprintf( out, "key - 'params' | '%p'", lexem -> func );
+
+			break;
+		}
+
+		case 8:
+		{
+			fprintf( out, "key - 'conds' | '%d'", *lexem -> value - '0' );
 
 			break;
 		}

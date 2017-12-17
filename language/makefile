@@ -10,7 +10,7 @@ all: compiler
 ./../tree.o:
 	$(MAKE) -C ./../tree_t
 
-lex_analyser.o: lex_analyser.c lex_analyser.h ./../log.o
+lex_analyser.o: lex_analyser.c lex_analyser.h ./../log.o kwrds.h
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 LNG_recurs_desc_parser.o: LNG_recurs_desc_parser.c LNG_recurs_desc_parser.h lex_analyser.o ./../log.o ./../tree.o
