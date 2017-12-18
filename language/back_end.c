@@ -6,7 +6,8 @@
 #include "./../log/log.h"
 #include "back_end.h"
 
-int RAM_COUNTER = 0;
+int	RAM_COUNTER = 0;
+int	LABEL_COUNTER = 0;
 
 int analyser_make_asm( struct analyser_t *analyser )
 {
@@ -73,7 +74,19 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 
 		case 3:
 		{
-			
+			if( *lexem -> value == '1' )
+			{
+				back_node( analyser, L( L( node ) ), dest );
+				
+				fprintf( dest, 	"push 0\n"
+						"je %d\n", LABEL_COUNTER );
+
+				back_node( analyser, R( L( node ) ), dest );
+
+				fprintf( dest, "label %d\n", LABEL_COUNTER++ );
+
+				break;
+			}
 		}
 
 		case 4:
@@ -121,7 +134,7 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 		}
 	}
 
-	if( lexem -> key != 1 && lexem -> key != 4 )
+	if( lexem -> key != 1 && lexem -> key != 4 && lexem -> key != 7 )
 		if( tree_get_next( node, right ) )
 			back_node( analyser, R( node ), dest );
 }
