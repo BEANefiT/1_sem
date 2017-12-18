@@ -24,7 +24,7 @@ int main( int argc, char *argv[] )
 
 	dumper( analyser.tree );
 
-	//analyser_make_asm( &analyser );
+	analyser_make_asm( &analyser );
 
 	log_destr();
 

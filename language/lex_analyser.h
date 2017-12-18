@@ -5,7 +5,7 @@
 
 #define LEX_ANALYSER_MAX_VALUE_LENGTH 64
 #define MAX_LEXEMS_COUNT 8192
-#define RAM_SZ 1028 //one more define of RAM_SZ in CPU.c
+#define RAM_SZ 1028 	//one more define of RAM_SZ in CPU.c
 #define MAX_VAR_LENGTH 16
 
 enum key_t
