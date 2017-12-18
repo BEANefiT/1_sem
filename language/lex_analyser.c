@@ -112,14 +112,13 @@ int getKW( struct lex_t *lexem, char *word, int word_sz )
 	check_pointer( lexem, 1 );
 	check_pointer( word, 1 );
 
-	if( !strcmp( word, "esli" ) )
-		*lexem -> value = '1';
+	#define DEF_KW( name, num, conds )		\
+		if( !strcmp( word, #name ) )		\
+			*lexem -> value = num + '0';
 
-	if( !strcmp( word, "inache" ) )
-		*lexem -> value = '2';
+	#include "kwrds.h"
 
-	if( !strcmp( word, "poka" ) )
-		*lexem -> value = '3';
+	#undef DEF_KW
 
 	return 0;
 }

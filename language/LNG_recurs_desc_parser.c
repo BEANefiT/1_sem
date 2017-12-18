@@ -173,14 +173,15 @@ struct tree_node_t *getKw( struct analyser_t *analyser )
 											\
 			check_syntax( '(' );						\
 											\
-			struct tree_node_t *tmp_node = conds_node;			\
+			struct tree_node_t *tmp_node = getN( analyser );		\
+			tree_set( conds_node, left, tmp_node );				\
 											\
-			for( int i = 0; i < conds; i++ )				\
+			for( int i = 1; i < conds; i++ )				\
 			{								\
-				struct tree_node_t *cond = getE( analyser );		\
+				struct tree_node_t *cond = getN( analyser );		\
 				check_pointer( cond, NULL );				\
 											\
-				tree_set( tmp_node, left, cond );			\
+				tree_set( tmp_node, right, cond );			\
 											\
 				tmp_node = cond;					\
 			}								\
@@ -392,7 +393,22 @@ int print_lexem( FILE *out, void *elem )
 
 		case 3:
 		{
-			fprintf( out, "key - 'kw' | '%s'", lexem -> value );
+			fprintf( out, "key - 'kw' | " );
+
+			#define DEF_KW( name, num, conds )		\
+				case num + '0':				\
+				{					\
+					fprintf( out, "'"#name"'" );	\
+									\
+					break;				\
+				}
+
+			switch( *lexem -> value )
+			{
+				#include "kwrds.h"
+			}
+
+			#undef DEF_KW
 
 			break;
 		}
@@ -428,14 +444,7 @@ int print_lexem( FILE *out, void *elem )
 
 		case 7:
 		{
-			fprintf( out, "key - 'params' | '%p'", lexem -> func );
-
-			break;
-		}
-
-		case 8:
-		{
-			fprintf( out, "key - 'conds' | '%d'", *lexem -> value - '0' );
+			fprintf( out, "%d cond(s)", *lexem -> value - '0' );
 
 			break;
 		}
