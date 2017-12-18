@@ -6,7 +6,7 @@
 
 int analyser_constr( struct analyser_t *analyser )
 {
-	analyser -> tree                   = NULL;
+	analyser -> tree       = NULL;
 	analyser -> src        = NULL;
 	analyser -> lex_num    = 0;
 	analyser -> src_sz     = 0;
@@ -63,6 +63,8 @@ int analyser_make_lexems( struct analyser_t *analyser )
 		word = ( char * )realloc( word, word_sz * sizeof( char ) );
 
 		check_for_word( KW,   3 )
+
+		check_for_word( DEF, 8 )
 		
 		check_for_word( FUNC, 6 )
 
@@ -77,7 +79,6 @@ char *getVAL( char *src, struct lex_t *lexem )
 	check_pointer( lexem, NULL );
 	check_pointer( src, NULL );
 
-	int tmp = 0;
 	size_t delta_cur = 0;
 
 	sscanf( src, "%lg%n", &( lexem -> koeff ), &delta_cur );
@@ -85,6 +86,14 @@ char *getVAL( char *src, struct lex_t *lexem )
 	src += delta_cur;
 
 	return src;
+}
+
+int getDEF( struct lex_t *lexem, char *word, int word_sz )
+{
+	check_pointer( lexem, 1 );
+	check_pointer( word, 1 );
+
+	return 0;
 }
 
 char *getOPER( char *src, struct lex_t *lexem )

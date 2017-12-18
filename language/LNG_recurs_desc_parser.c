@@ -10,6 +10,17 @@ int analyser_make_tree( struct analyser_t *analyser )
 
 	struct tree_node_t *root = getFunc( analyser );
 
+	struct tree_node_t *tmp_node = root;
+	
+	while( analyser -> cur_pos < analyser -> lex_num )
+	{
+		struct tree_node_t *newnode = getFunc( analyser );
+
+		tree_set( tmp_node, right, newnode );
+
+		tmp_node = newnode;
+	}
+
 	analyser -> tree = tree_constr( sizeof( struct lex_t ), print_lexem, cmp_lexem, root );
 
 	return 0;
@@ -54,15 +65,24 @@ struct tree_node_t *getFunc( struct analyser_t *analyser )
 			
 			return NULL;
 		}
-
 		function -> params_arr[ function -> param_count++ ] = analyser -> lexems[ analyser -> cur_pos++ ];
 	}
 
 	check_syntax( '>' );
 
-	function -> params_arr =
-		( struct lex_t ** )realloc( function -> params_arr, function -> param_count * sizeof( struct lex_t * ) );
-	check_pointer( function -> params_arr, NULL );
+	if( function -> param_count != 0 )
+	{
+		function -> params_arr =
+			( struct lex_t ** )realloc( function -> params_arr, function -> param_count * sizeof( struct lex_t * ) );
+		check_pointer( function -> params_arr, NULL );
+	}
+	
+	else
+	{
+		free( function -> params_arr );
+
+		function -> params_arr = NULL;
+	}
 
 	struct tree_node_t *node = tree_node_construct( analyser -> tree, NULL, func_lexem );
 	check_pointer( node, NULL );
@@ -116,6 +136,9 @@ struct tree_node_t *getI( struct analyser_t *analyser )
 	if( !node )
 		node = getKw( analyser );
 
+	if( !node )
+		node = getDclr( analyser );
+
 	return node;
 }
 
@@ -123,7 +146,7 @@ struct tree_node_t *getAssn( struct analyser_t *analyser )
 {
 	check_pointer( analyser, NULL );
 
-	if( *analyser -> lexems[ analyser -> cur_pos + 1] -> value != '=' )
+	if( *analyser -> lexems[ analyser -> cur_pos + 1 ] -> value != '=' )
 		return NULL;
 
 	struct tree_node_t *var = getVar( analyser );
@@ -139,6 +162,24 @@ struct tree_node_t *getAssn( struct analyser_t *analyser )
 	tree_set( node, left, var );
 	tree_set( var, right, E );
 	
+	return node;
+}
+
+struct tree_node_t *getDclr( struct analyser_t *analyser )
+{
+	check_pointer( analyser, NULL );
+
+	if( analyser -> lexems[ analyser -> cur_pos ] -> key != 8 )
+		return NULL;
+
+	struct tree_node_t *node =
+		tree_node_construct( analyser -> tree, NULL, analyser -> lexems[ analyser -> cur_pos++ ] );
+
+	struct tree_node_t *var = getVar( analyser );
+	check_pointer( var, NULL );
+
+	tree_set( node, left, var );
+
 	return node;
 }
 
@@ -446,6 +487,13 @@ int print_lexem( FILE *out, void *elem )
 		case 7:
 		{
 			fprintf( out, "%d cond(s)", *lexem -> value - '0' );
+
+			break;
+		}
+
+		case 8:
+		{
+			fprintf( out, "declaration" );
 
 			break;
 		}

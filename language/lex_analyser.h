@@ -5,6 +5,8 @@
 
 #define LEX_ANALYSER_MAX_VALUE_LENGTH 64
 #define MAX_LEXEMS_COUNT 8192
+#define RAM_SZ 1028 //one more define of RAM_SZ in CPU.c
+#define MAX_VAR_LENGTH 16
 
 enum key_t
 {
@@ -14,7 +16,8 @@ enum key_t
 	var     = 4,
 	br      = 5,
 	func    = 6,
-	cond	= 7
+	cond	= 7,
+	dclr	= 8
 };
 
 #define DEF_KW( kw, num, conds ) \
@@ -35,9 +38,16 @@ struct lex_t
 	struct func_t*	func;
 };
 
+struct var_t
+{
+	char*	name;
+	int	adrs;
+};
+
 struct analyser_t
 {
 	struct lex_t*    lexems[ MAX_LEXEMS_COUNT ];
+	struct var_t*    vars[ RAM_SZ ];
 	struct tree_t*   tree;
 	char*            src;
 	size_t           lex_num;
@@ -67,6 +77,7 @@ int	getVAR( struct lex_t *lexem, char *word, int word_sz );
 char*	getVAL( char *src, struct lex_t *lexem );
 char*	getOPER( char *src, struct lex_t *lexem );
 char*	getBR( char *src, struct lex_t *lexem );
+int	getDEF( struct lex_t *lexem, char *word, int word_sz );
 
 #define check_for_lexem( ARG, key_num )							\
 if( is##ARG )										\
@@ -100,7 +111,10 @@ if( is##ARG )										\
 }
 
 #define isTRASH \
-elem == ' ' || elem == '\n' || elem == '\t' || elem == '\v' || elem == ',' || elem == ';'
+	elem == ' ' || elem == '\n' || elem == '\t' || elem == '\v' || elem == ',' || elem == ';'
+
+#define isDEF \
+	!strcmp( word, "def" )
 
 
 #define isVAL \

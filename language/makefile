@@ -25,4 +25,4 @@ compiler: compiler.c compiler.h lex_analyser.o LNG_recurs_desc_parser.o back_end
 .PHONY: clean
 
 clean:
-	rm -rf *.o dump dmp log.txt asm
+	rm -rf *.o dump dmp log.txt asm compiler

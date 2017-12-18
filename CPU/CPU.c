@@ -7,7 +7,8 @@
 #include <log.h>
 #include <CPU.h>
 #include <commands.h>
-//#include "./../Compilier/commands.h"
+
+#define RAM_SZ 1028 //one more define of RAM_SZ in lex_analyser.h
 
 int main()
 {
@@ -27,8 +28,8 @@ int CPU_construct( struct CPU_structure *CPU )
 	( CPU ) -> values = values;
 	( CPU ) -> rets = rets;
 	( CPU ) -> registers = ( double * )calloc( 4, sizeof( double ) );
-	( CPU ) -> RAM = ( double * )calloc( 64, sizeof( double ) );
-	( CPU ) -> RAM_sz = 64;
+	( CPU ) -> RAM = ( double * )calloc( RAM_SZ, sizeof( double ) );
+	( CPU ) -> RAM_sz = RAM_SZ;
 	( CPU ) -> exe_sz = 0;
 	( CPU ) -> exe = getcode( CPU );
 }
