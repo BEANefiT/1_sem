@@ -212,6 +212,7 @@ DEF_CMD( SIN, sin, 25, { to_exe( &CMD_SIN, int ); }, sizeof( int ), unary_cmd( s
 DEF_CMD( COS, cos, 26, { to_exe( &CMD_COS, int ); }, sizeof( int ), unary_cmd( cos ) );
 DEF_CMD( TG, tan, 27, { to_exe( &CMD_TG, int ); }, sizeof( int ), unary_cmd( tan ) );
 DEF_CMD( CAT, cat, 28, { to_exe( &CMD_CAT, int ); }, sizeof( int ), DrawCat(); );
+DEF_CMD( END, end, 29, { to_exe( &CMD_END, int ); }, sizeof( int ), return 0 );
 #endif /*DEF_CMD*/
 
 #ifndef _COMMANDS_H_
