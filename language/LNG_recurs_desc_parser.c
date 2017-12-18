@@ -22,16 +22,23 @@ struct tree_node_t *getFunc( struct analyser_t *analyser )
 	if( analyser -> lexems[ analyser -> cur_pos ] -> key != 6 )
 		return NULL;
 
-	struct tree_node_t *node = 
-		tree_node_construct( analyser -> tree, NULL, analyser -> lexems[ analyser -> cur_pos++] );
+	struct lex_t *func_lexem = analyser -> lexems[ analyser -> cur_pos++ ];
+	check_pointer( func_lexem, NULL );
+
+	struct func_t *function = ( struct func_t * )calloc( 1, sizeof( struct func_t ) );
+	check_pointer( function, NULL );
+
+	function -> name = func_lexem -> value;
+
+	func_lexem -> func = function;
 
 	check_syntax( '<' );
 
-	int param_count = 0;
+	function -> param_count = 0;
 
-	struct lex_t **params_arr =
+	function -> params_arr =
 		( struct lex_t ** )calloc( LRDP_MAX_PARAM_COUNT, sizeof( struct lex_t * ) );
-	check_pointer( params_arr, NULL );
+	check_pointer( function -> params_arr, NULL );
 
 	while
 	(
@@ -41,35 +48,36 @@ struct tree_node_t *getFunc( struct analyser_t *analyser )
 	)
 	
 	{
-		if( param_count == LRDP_MAX_PARAM_COUNT )
+		if( function -> param_count == LRDP_MAX_PARAM_COUNT )
 		{
 			printf( "too many arguments near lexem(%zd)\n", analyser -> cur_pos );
 			
 			return NULL;
 		}
 
-		params_arr[ param_count++ ] = analyser -> lexems[ analyser -> cur_pos++ ];
+		function -> params_arr[ function -> param_count++ ] = analyser -> lexems[ analyser -> cur_pos++ ];
 	}
 
 	check_syntax( '>' );
 
-	params_arr = ( struct lex_t ** )realloc( params_arr, param_count * sizeof( struct lex_t * ) );
-	check_pointer( params_arr, NULL );
+	function -> params_arr =
+		( struct lex_t ** )realloc( function -> params_arr, function -> param_count * sizeof( struct lex_t * ) );
+	check_pointer( function -> params_arr, NULL );
 
-	struct func_t *func = ( struct func_t * )calloc( 1, sizeof( struct func_t ) );
-	check_pointer( func, NULL );
+	struct tree_node_t *node = tree_node_construct( analyser -> tree, NULL, func_lexem );
+	check_pointer( node, NULL );
 
-	func -> param_count = param_count;
-	func -> params_arr = params_arr;
+	if( *analyser -> lexems[ analyser -> cur_pos ] -> value != '[' )
+	{
+		function -> mode = call;
 
-	struct lex_t *parameters = ( struct lex_t * )calloc( 1, sizeof( struct lex_t ) );
-	check_pointer( parameters, NULL );
-
-	parameters -> key = 7;
-	parameters -> func = func;
+		return node;
+	}
 
 	check_syntax( '[' );
 
+	function -> mode = decl;
+	
 	struct tree_node_t *newnode = getI( analyser );
 	check_pointer( newnode, NULL );
 
@@ -148,7 +156,7 @@ struct tree_node_t *getKw( struct analyser_t *analyser )
 	struct lex_t *cond_num = ( struct lex_t * )calloc( 1, sizeof( struct lex_t ) );
 	check_pointer( cond_num, NULL );
 
-	cond_num -> key = 8;
+	cond_num -> key = 7;
 
 	#define DEF_KW( kw, num, conds )						\
 		case num + '0':								\
@@ -248,8 +256,8 @@ struct tree_node_t *getE( struct analyser_t *analyser )
 		struct tree_node_t *node_cp = tree_copy( analyser -> tree, node );
 		check_pointer( node_cp, NULL );
 
-		tree_set( oper, left, node2 );
-		tree_set( node2, right, node_cp );
+		tree_set( oper, left, node_cp );
+		tree_set( node_cp, right, node2 );
 
 		node = tree_node_change( node, oper );
 
@@ -280,8 +288,8 @@ struct tree_node_t *getT( struct analyser_t *analyser )
 		struct tree_node_t *node_cp = tree_copy( analyser -> tree, node );
 		check_pointer( node_cp, NULL );
 
-		tree_set( oper, left, node2 );
-		tree_set( node2, right, node_cp );
+		tree_set( oper, left, node_cp );
+		tree_set( node_cp, right, node2 );
 
 		node = tree_node_change( node, oper );
 
@@ -312,8 +320,8 @@ struct tree_node_t *getB( struct analyser_t *analyser )
 		struct tree_node_t *node_cp = tree_copy( analyser -> tree, node );
 		check_pointer( node_cp, NULL );
 
-		tree_set( oper, left, node2 );
-		tree_set( node2, right, node_cp );
+		tree_set( oper, left, node_cp );
+		tree_set( node_cp, right, node2 );
 
 		node = tree_node_change( node, oper );
 
@@ -405,7 +413,15 @@ int print_lexem( FILE *out, void *elem )
 
 		case 6:
 		{
-			fprintf( out, "key - 'func' | '%s'", lexem -> value );
+			struct func_t *function = lexem -> func;
+
+			fprintf( out, "key - 'func' | '%s' | %d params | mode = ", function -> name, function -> param_count );
+
+			if( function -> mode == decl )
+				fprintf( out, "decl" );
+
+			if( function -> mode == call )
+				fprintf( out, "call" );
 
 			break;
 		}

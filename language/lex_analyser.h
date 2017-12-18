@@ -14,8 +14,7 @@ enum key_t
 	var     = 4,
 	br      = 5,
 	func    = 6,
-	params	= 7,
-	conds	= 8
+	cond	= 7
 };
 
 #define DEF_KW( kw, num, conds ) \
@@ -46,10 +45,18 @@ struct analyser_t
 	size_t           cur_pos;
 };
 
+enum func_act
+{
+	call,
+	decl
+};
+
 struct func_t
 {
-	int		param_count;
 	struct lex_t**	params_arr;
+	char*		name;
+	int		param_count;
+	enum func_act	mode;
 };
 
 int	analyser_constr( struct analyser_t *analyser );
