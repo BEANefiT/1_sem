@@ -173,12 +173,12 @@ struct tree_node_t *getKw( struct analyser_t *analyser )
 											\
 			check_syntax( '(' );						\
 											\
-			struct tree_node_t *tmp_node = getN( analyser );		\
+			struct tree_node_t *tmp_node = getE( analyser );		\
 			tree_set( conds_node, left, tmp_node );				\
 											\
 			for( int i = 1; i < conds; i++ )				\
 			{								\
-				struct tree_node_t *cond = getN( analyser );		\
+				struct tree_node_t *cond = getE( analyser );		\
 				check_pointer( cond, NULL );				\
 											\
 				tree_set( tmp_node, right, cond );			\
@@ -338,6 +338,7 @@ struct tree_node_t *getP( struct analyser_t *analyser )
 
 	if( *analyser -> lexems[ analyser -> cur_pos ] -> value == '(' )
 	{
+		analyser -> cur_pos++;
 		struct tree_node_t *node = getE( analyser );
 		check_pointer( node, NULL );
 

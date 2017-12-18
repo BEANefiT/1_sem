@@ -119,7 +119,7 @@ elem == '(' || elem == ')' || elem == '[' || elem == ']' || elem == '<' || elem 
 
 
 #define isKW \
-!( strcmp( word, "esli" ) * strcmp( word, "inache" ) * strcmp( word, "poka" ) * strcmp( word, "dlya" ) * strcmp( word, "tmp" ))
+!( strcmp( word, "esli" ) * strcmp( word, "inache" ) * strcmp( word, "poka" ) * strcmp( word, "dlya" ) )
 
 
 #define isFUNC \
