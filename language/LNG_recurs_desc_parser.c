@@ -91,8 +91,6 @@ struct tree_node_t *getFunc( struct analyser_t *analyser )
 	{
 		function -> mode = call;
 
-		check_syntax( ';' );
-
 		return node;
 	}
 

@@ -240,7 +240,9 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 			RAM_beg = RAM_COUNTER;
 			RAM_end = RAM_COUNTER;
 
-			for( int i = 0; i < func -> param_count; i++ )
+			fprintf( dest, "label %s\n", func -> name );
+
+			for( int i = func -> param_count - 1; i >= 0; i-- )
 			{
 				analyser -> vars[ RAM_end ] = ( struct var_t * )calloc( 1, sizeof( struct var_t ) );
 				analyser -> vars[ RAM_end ] -> name = func -> params_arr[ i ] -> value;
@@ -252,11 +254,11 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 				RAM_COUNTER++;
 			}
 
-			fprintf( dest, "label %s\n", func -> name );
-
 			back_node( analyser, L( node ), dest, recurs, &RAM_beg, &RAM_end );
 
 			fprintf( dest, "ret\n" );
+
+
 
 			break;
 		}
