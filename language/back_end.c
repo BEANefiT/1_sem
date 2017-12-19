@@ -76,10 +76,37 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 		{
 			if( *lexem -> value == '1' )
 			{
-				back_node( analyser, L( L( node ) ), dest );
+				struct lex_t *fst_cond = ( struct lex_t * )tree_get_elem( L( L( node ) ) );
+				check_pointer( fst_cond, 1 );
+
+				#define if_oper( symb, cmd )						\
+					if( *fst_cond -> value == symb )				\
+					{								\
+						back_node( analyser, L( L( L( node ) ) ), dest );	\
+													\
+						back_node( analyser, R( L( L( L( node ) ) ) ), dest );	\
+													\
+						fprintf( dest, #cmd" %d\n", LABEL_COUNTER );		\
+					}
+
+				if_oper( '<', jae )
+				if_oper( '>', jbe )
+				if_oper( '?', jne )
+
+				#undef if_oper
+			
+				#define ne( symb )	\
+					*fst_cond -> value != symb
+
+				if( ne( '<' ) && ne( '>' ) && ne( '?' ) )
+				{
+					back_node( analyser, L( L( node ) ), dest );
 				
-				fprintf( dest, 	"push 0\n"
-						"je %d\n", LABEL_COUNTER );
+					fprintf( dest, 	"push 0\n"
+							"je %d\n", LABEL_COUNTER );
+				}
+
+				#undef ne
 
 				back_node( analyser, R( L( node ) ), dest );
 

@@ -15,6 +15,7 @@ struct tree_node_t*	getVar( struct analyser_t * );
 struct tree_node_t*	getE( struct analyser_t * );
 struct tree_node_t*	getT( struct analyser_t * );
 struct tree_node_t*	getB( struct analyser_t * );
+struct tree_node_t*	getM( struct analyser_t * );
 struct tree_node_t*	getP( struct analyser_t * );
 struct tree_node_t*	getN( struct analyser_t * );
 struct tree_node_t*	getDclr( struct analyser_t * );

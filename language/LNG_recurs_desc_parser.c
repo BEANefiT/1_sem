@@ -43,7 +43,7 @@ struct tree_node_t *getFunc( struct analyser_t *analyser )
 
 	func_lexem -> func = function;
 
-	check_syntax( '<' );
+	check_syntax( '{' );
 
 	function -> param_count = 0;
 
@@ -55,7 +55,7 @@ struct tree_node_t *getFunc( struct analyser_t *analyser )
 	(
 		analyser -> lexems[ analyser -> cur_pos ] -> key != 5
 	&&
-		*analyser -> lexems[ analyser -> cur_pos ] -> value != '>'
+		*analyser -> lexems[ analyser -> cur_pos ] -> value != '}'
 	)
 	
 	{
@@ -68,7 +68,7 @@ struct tree_node_t *getFunc( struct analyser_t *analyser )
 		function -> params_arr[ function -> param_count++ ] = analyser -> lexems[ analyser -> cur_pos++ ];
 	}
 
-	check_syntax( '>' );
+	check_syntax( '}' );
 
 	if( function -> param_count != 0 )
 	{
@@ -345,12 +345,44 @@ struct tree_node_t *getB( struct analyser_t *analyser )
 {
 	check_pointer( analyser, NULL );
 
-	struct tree_node_t *node = getP( analyser );
+	struct tree_node_t *node = getM( analyser );
 	check_pointer( node, NULL );
 
 	char next_elem = *analyser -> lexems[ analyser -> cur_pos ] -> value;
 
 	while( next_elem == '^' )
+	{
+		struct tree_node_t *oper =
+			tree_node_construct( analyser -> tree, NULL, analyser -> lexems[ analyser -> cur_pos++ ] );
+		check_pointer( oper, NULL );
+
+		struct tree_node_t *node2 = getM( analyser );
+		check_pointer( node2, NULL );
+
+		struct tree_node_t *node_cp = tree_copy( analyser -> tree, node );
+		check_pointer( node_cp, NULL );
+
+		tree_set( oper, left, node_cp );
+		tree_set( node_cp, right, node2 );
+
+		node = tree_node_change( node, oper );
+
+		next_elem = *analyser -> lexems[ analyser -> cur_pos ] -> value;
+	}
+
+	return node;
+}
+
+struct tree_node_t *getM( struct analyser_t *analyser )
+{
+	check_pointer( analyser, NULL );
+
+	struct tree_node_t *node = getP( analyser );
+	check_pointer( node, NULL );
+
+	char next_elem = *analyser -> lexems[ analyser -> cur_pos ] -> value;
+
+	while( next_elem == '<' || next_elem == '>' || next_elem == '?' )
 	{
 		struct tree_node_t *oper =
 			tree_node_construct( analyser -> tree, NULL, analyser -> lexems[ analyser -> cur_pos++ ] );
