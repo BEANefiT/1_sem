@@ -122,11 +122,11 @@ if( is##ARG )										\
 
 
 #define isOPER \
-elem == '+' || elem == '-' || elem == '/' || elem == '*' || elem == '='
+elem == '+' || elem == '-' || elem == '/' || elem == '*' || elem == '=' || elem == '>' || elem == '<' || elem == '?'
 
 
 #define isBR \
-elem == '(' || elem == ')' || elem == '[' || elem == ']' || elem == '<' || elem == '>'
+elem == '(' || elem == ')' || elem == '[' || elem == ']' || elem == '{' || elem == '}'
 
 
 #define isLETTER ( 'a' <= elem && 'z' >= elem ) || ( 'A' <= elem && 'Z' >= elem )
@@ -137,7 +137,7 @@ elem == '(' || elem == ')' || elem == '[' || elem == ']' || elem == '<' || elem 
 
 
 #define isFUNC \
-*src == '<'
+*src == '{'
 
 
 #define isVAR \
