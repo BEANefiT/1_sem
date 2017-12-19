@@ -16,10 +16,10 @@ int analyser_make_asm( struct analyser_t *analyser )
 	fprintf( dest, 	"call main\n"
 			"end\n" );
 
-	back_node( analyser, tree_get_root( analyser -> tree ), dest );
+	back_node( analyser, tree_get_root( analyser -> tree ), dest, recurs );
 }
 
-int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest )
+int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest, enum back_type mode )
 {
 	struct lex_t *lexem = ( struct lex_t * )tree_get_elem( node );
 
@@ -34,16 +34,16 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 
 		case 2:
 		{
-			#define case_oper( operatr, cmd )				\
-				case operatr:						\
-				{							\
-					back_node( analyser, L( node ), dest );		\
-											\
-					back_node( analyser, R( L( node ) ), dest );	\
-											\
-					fprintf( dest, #cmd"\n" );			\
-											\
-					break;						\
+			#define case_oper( operatr, cmd )					\
+				case operatr:							\
+				{								\
+					back_node( analyser, L( node ), dest, normal );		\
+												\
+					back_node( analyser, R( L( node ) ), dest, normal );	\
+												\
+					fprintf( dest, #cmd"\n" );				\
+												\
+					break;							\
 				}
 
 			switch( *lexem -> value )
@@ -55,7 +55,7 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 				
 				case '=':
 				{
-					back_node( analyser, R( L( node ) ), dest );
+					back_node( analyser, R( L( node ) ), dest, normal );
 
 					char *variable = ( (struct lex_t * )tree_get_elem( L( node ) ) ) -> value;
 
@@ -79,14 +79,14 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 				struct lex_t *fst_cond = ( struct lex_t * )tree_get_elem( L( L( node ) ) );
 				check_pointer( fst_cond, 1 );
 
-				#define if_oper( symb, cmd )						\
-					if( *fst_cond -> value == symb )				\
-					{								\
-						back_node( analyser, L( L( L( node ) ) ), dest );	\
-													\
-						back_node( analyser, R( L( L( L( node ) ) ) ), dest );	\
-													\
-						fprintf( dest, #cmd" %d\n", LABEL_COUNTER );		\
+				#define if_oper( symb, cmd )							\
+					if( *fst_cond -> value == symb )					\
+					{									\
+						back_node( analyser, L( L( L( node ) ) ), dest, normal );	\
+														\
+						back_node( analyser, R( L( L( L( node ) ) ) ), dest, normal );	\
+														\
+						fprintf( dest, #cmd" %d\n", LABEL_COUNTER );			\
 					}
 
 				if_oper( '<', jae )
@@ -100,7 +100,7 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 
 				if( ne( '<' ) && ne( '>' ) && ne( '?' ) )
 				{
-					back_node( analyser, L( L( node ) ), dest );
+					back_node( analyser, L( L( node ) ), dest, normal );
 				
 					fprintf( dest, 	"push 0\n"
 							"je %d\n", LABEL_COUNTER );
@@ -108,7 +108,7 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 
 				#undef ne
 
-				back_node( analyser, R( L( node ) ), dest );
+				back_node( analyser, R( L( node ) ), dest, recurs );
 
 				fprintf( dest, "label %d\n", LABEL_COUNTER++ );
 
@@ -119,19 +119,19 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 			{
 				fprintf( dest, "label %d\n", LABEL_COUNTER );
 
-				back_node( analyser, R( L( node ) ), dest );
+				back_node( analyser, R( L( node ) ), dest, recurs );
 
 				struct lex_t *fst_cond = ( struct lex_t * )tree_get_elem( L( L( node ) ) );
 				check_pointer( fst_cond, 1 );
 
-				#define if_oper( symb, cmd )						\
-					if( *fst_cond -> value == symb )				\
-					{								\
-						back_node( analyser, L( L( L( node ) ) ), dest );	\
-													\
-						back_node( analyser, R( L( L( L( node ) ) ) ), dest );	\
-													\
-						fprintf( dest, #cmd" %d\n", LABEL_COUNTER++ );		\
+				#define if_oper( symb, cmd )							\
+					if( *fst_cond -> value == symb )					\
+					{									\
+						back_node( analyser, L( L( L( node ) ) ), dest, normal );	\
+														\
+						back_node( analyser, R( L( L( L( node ) ) ) ), dest, normal );	\
+														\
+						fprintf( dest, #cmd" %d\n", LABEL_COUNTER++ );			\
 					}
 
 				if_oper( '<', jb )
@@ -145,7 +145,50 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 
 				if( ne( '<' ) && ne( '>' ) && ne( '?' ) )
 				{
-					back_node( analyser, L( L( node ) ), dest );
+					back_node( analyser, L( L( node ) ), dest, normal );
+				
+					fprintf( dest, 	"push 0\n"
+							"jne %d\n", LABEL_COUNTER++ );
+				}
+
+				#undef ne
+			}
+
+			if( *lexem -> value == '4' )
+			{
+				back_node( analyser, L( L( node ) ), dest, normal );
+
+				fprintf( dest, "label %d\n", LABEL_COUNTER );
+
+				back_node( analyser, R( L( node ) ), dest, recurs );
+
+				back_node( analyser, R( R( L( L( node ) ) ) ), dest, normal );
+
+				struct lex_t *fst_cond = ( struct lex_t * )tree_get_elem( R( L( L( node ) ) ) );
+				check_pointer( fst_cond, 1 );
+
+				#define if_oper( symb, cmd )								\
+					if( *fst_cond -> value == symb )						\
+					{										\
+						back_node( analyser, L( R( L( L( node ) ) ) ), dest, normal );		\
+															\
+						back_node( analyser, R( L( R( L( L( node ) ) ) ) ), dest, normal );	\
+															\
+						fprintf( dest, #cmd" %d\n", LABEL_COUNTER++ );				\
+					}
+
+				if_oper( '<', jb )
+				if_oper( '>', ja )
+				if_oper( '?', je )
+
+				#undef if_oper
+
+				#define ne( symb )	\
+					*fst_cond -> value != symb
+
+				if( ne( '<' ) && ne( '>' ) && ne( '?' ) )
+				{
+					back_node( analyser, R( L( L( node ) ) ), dest, normal );
 				
 					fprintf( dest, 	"push 0\n"
 							"jne %d\n", LABEL_COUNTER++ );
@@ -177,7 +220,7 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 
 			fprintf( dest, "label %s\n", func -> name );
 
-			back_node( analyser, L( node ), dest );
+			back_node( analyser, L( node ), dest, recurs );
 
 			fprintf( dest, "ret\n" );
 
@@ -200,7 +243,7 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 		}
 	}
 
-	if( lexem -> key != 1 && lexem -> key != 4 && lexem -> key != 7 )
+	if( mode == recurs )
 		if( tree_get_next( node, right ) )
-			back_node( analyser, R( node ), dest );
+			back_node( analyser, R( node ), dest, recurs );
 }

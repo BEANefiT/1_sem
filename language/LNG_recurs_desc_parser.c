@@ -214,18 +214,30 @@ struct tree_node_t *getKw( struct analyser_t *analyser )
 											\
 			check_syntax( '(' );						\
 											\
-			struct tree_node_t *tmp_node = getE( analyser );		\
+			if( conds == 1 )						\
+			{								\
+				struct tree_node_t *tmp_node = getE( analyser );	\
+				tree_set( conds_node, left, tmp_node );			\
+											\
+				check_syntax( ')' );					\
+											\
+				break;							\
+			}								\
+											\
+			struct tree_node_t *tmp_node = getI( analyser );		\
+			check_pointer( tmp_node, NULL );				\
+											\
 			tree_set( conds_node, left, tmp_node );				\
 											\
-			for( int i = 1; i < conds; i++ )				\
-			{								\
-				struct tree_node_t *cond = getE( analyser );		\
-				check_pointer( cond, NULL );				\
+			struct tree_node_t *cond = getE( analyser );			\
+			check_pointer( cond, NULL );					\
 											\
-				tree_set( tmp_node, right, cond );			\
+			tree_set( tmp_node, right, cond );				\
 											\
-				tmp_node = cond;					\
-			}								\
+			tmp_node = getI( analyser );					\
+			check_pointer( tmp_node, NULL );				\
+											\
+			tree_set( cond, right, tmp_node );				\
 											\
 			check_syntax( ')' );						\
 											\
@@ -423,7 +435,7 @@ struct tree_node_t *getP( struct analyser_t *analyser )
 	struct tree_node_t *node = getN( analyser );
 
 	if( !node )
-		node = getFunc( analyser );
+		node = getI( analyser );
 
 	return node;
 }
@@ -460,6 +472,13 @@ int print_lexem( FILE *out, void *elem )
 
 		case 2:
 		{
+			if( *lexem -> value == '>' || *lexem -> value == '<' )
+			{
+				fprintf( out, "key - 'oper' | \\\"\\%c\\\" ", *lexem -> value );
+
+				break;
+			}
+
 			fprintf( out, "key - 'oper' | '%c'", *lexem -> value );
 
 			break;
