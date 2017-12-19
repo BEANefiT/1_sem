@@ -270,6 +270,40 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 
 			break;
 		}
+
+		case 9:
+		{
+			if( L( node ) )
+			{
+				back_node( analyser, L( node ), dest, normal, &RAM_beg, &RAM_end );
+			}
+
+			fprintf( dest, "ret\n" );
+
+			break;
+		}
+
+		case 11:
+		{
+			back_node( analyser, L( node ), dest, normal, &RAM_beg, &RAM_end );
+
+			fprintf( dest, "out\n" );
+
+			break;
+		}
+
+		case 12:
+		{
+			fprintf( dest, "in\n" );
+
+			char *variable = ( (struct lex_t * )tree_get_elem( L( node ) ) ) -> value;
+
+			for( int i = RAM_beg; i < RAM_end; i++ )
+				if( !strcmp( analyser -> vars[ i ] -> name, variable ) )
+					fprintf( dest, "pop [%d]\n", i );
+
+			break;
+		}
 	}
 
 	if( mode == recurs )

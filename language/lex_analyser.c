@@ -39,6 +39,8 @@ int analyser_make_lexems( struct analyser_t *analyser )
 		check_for_lexem( OPER, 2 )
 
 		check_for_lexem( BR,   5 )
+
+		check_for_lexem( Punc, 10 )
 		
 		char *word = ( char * )calloc( LEX_ANALYSER_MAX_VALUE_LENGTH, sizeof( char ) );
 		check_pointer( word, 1 );
@@ -61,6 +63,12 @@ int analyser_make_lexems( struct analyser_t *analyser )
 		}
 
 		word = ( char * )realloc( word, word_sz * sizeof( char ) );
+
+		check_for_word( RET, 9 )
+		
+		check_for_word( OUT, 11 )
+
+		check_for_word( IN, 12 )
 
 		check_for_word( KW,   3 )
 
@@ -116,6 +124,16 @@ char *getBR( char *src, struct lex_t *lexem )
 	return src;
 }
 
+char *getPunc( char *src, struct lex_t *lexem )
+{
+	check_pointer( lexem, NULL );
+	check_pointer( src, NULL );
+
+	*lexem -> value = *( src++ );
+
+	return src;
+}
+
 int getKW( struct lex_t *lexem, char *word, int word_sz )
 {
 	check_pointer( lexem, 1 );
@@ -130,6 +148,18 @@ int getKW( struct lex_t *lexem, char *word, int word_sz )
 	#undef DEF_KW
 
 	return 0;
+}
+
+int getRET( struct lex_t *lexem, char *word, int word_sz )
+{
+}
+
+int getOUT( struct lex_t *lexem, char *word, int word_sz )
+{
+}
+
+int getIN( struct lex_t *lexem, char *word, int word_sz )
+{
 }
 
 int getFUNC( struct lex_t *lexem, char *word, int word_sz )

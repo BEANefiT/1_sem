@@ -17,7 +17,11 @@ enum key_t
 	br      = 5,
 	func    = 6,
 	cond	= 7,
-	dclr	= 8
+	dclr	= 8,
+	ret	= 9,
+	punc	= 10,
+	out	= 11,
+	in	= 12
 };
 
 #define DEF_KW( kw, num, conds ) \
@@ -74,10 +78,14 @@ int	analyser_make_lexems( struct analyser_t *analyser );
 int	getKW( struct lex_t *lexem, char *word, int word_sz );
 int	getFUNC( struct lex_t *lexem, char *word, int word_sz );
 int	getVAR( struct lex_t *lexem, char *word, int word_sz );
+int	getDEF( struct lex_t *lexem, char *word, int word_sz );
+int	getRET( struct lex_t *lexem, char *word, int word_sz );
+int	getIN( struct lex_t *lexem, char *word, int word_sz );
+int	getOUT( struct lex_t *lexem, char *word, int word_sz );
 char*	getVAL( char *src, struct lex_t *lexem );
 char*	getOPER( char *src, struct lex_t *lexem );
 char*	getBR( char *src, struct lex_t *lexem );
-int	getDEF( struct lex_t *lexem, char *word, int word_sz );
+char*	getPunc( char *src, struct lex_t *lexem );
 
 #define check_for_lexem( ARG, key_num )							\
 if( is##ARG )										\
@@ -111,7 +119,7 @@ if( is##ARG )										\
 }
 
 #define isTRASH \
-	elem == ' ' || elem == '\n' || elem == '\t' || elem == '\v' || elem == ',' || elem == ';'
+	elem == ' ' || elem == '\n' || elem == '\t' || elem == '\v' || elem == ','
 
 #define isDEF \
 	!strcmp( word, "def" )
@@ -122,19 +130,37 @@ if( is##ARG )										\
 
 
 #define isOPER \
-elem == '+' || elem == '-' || elem == '/' || elem == '*' || elem == '=' || elem == '>' || elem == '<' || elem == '?'
+	elem == '+' || elem == '-' || elem == '/' || elem == '*' || elem == '='	\
+	|| elem == '>' || elem == '<' || elem == '?'
 
 
 #define isBR \
-elem == '(' || elem == ')' || elem == '[' || elem == ']' || elem == '{' || elem == '}'
+	elem == '(' || elem == ')' || elem == '[' || elem == ']' || elem == '{' || elem == '}'
 
 
-#define isLETTER ( 'a' <= elem && 'z' >= elem ) || ( 'A' <= elem && 'Z' >= elem )
+#define isLETTER	\
+	( 'a' <= elem && 'z' >= elem ) || ( 'A' <= elem && 'Z' >= elem )
+
+
+#define isRET	\
+	!strcmp( word, "return" )
+
+
+#define isIN	\
+	!strcmp( word, "scan" )
+
+
+#define isOUT	\
+	!strcmp( word, "print" )
 
 
 #define isKW \
-!( strcmp( word, "esli" ) * strcmp( word, "inache" ) * strcmp( word, "poka" ) * strcmp( word, "dlya" ) )
+	!( strcmp( word, "esli" ) * strcmp( word, "inache" ) * strcmp( word, "poka" )	\
+	* strcmp( word, "dlya" ) )
 
+
+#define isPunc \
+	elem == ';'
 
 #define isFUNC \
 *src == '{'

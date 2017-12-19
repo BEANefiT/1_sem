@@ -91,6 +91,8 @@ struct tree_node_t *getFunc( struct analyser_t *analyser )
 	{
 		function -> mode = call;
 
+		check_syntax( ';' );
+
 		return node;
 	}
 
@@ -134,6 +136,15 @@ struct tree_node_t *getI( struct analyser_t *analyser )
 		node = getAssn( analyser );
 
 	if( !node )
+		node = getRet( analyser );
+
+	if( !node )
+		node = getOut( analyser );
+
+	if( !node )
+		node = getIn( analyser );
+
+	if( !node )
 		node = getKw( analyser );
 
 	if( !node )
@@ -161,9 +172,75 @@ struct tree_node_t *getAssn( struct analyser_t *analyser )
 
 	tree_set( node, left, var );
 	tree_set( var, right, E );
+
+	check_syntax( ';' );
 	
 	return node;
 }
+
+struct tree_node_t *getRet( struct analyser_t *analyser )
+{
+	check_pointer( analyser, NULL );
+
+	if( analyser -> lexems[ analyser -> cur_pos ] -> key != 9 )
+		return NULL;
+
+	struct tree_node_t *node =
+		tree_node_construct( analyser -> tree, NULL, analyser -> lexems[ analyser -> cur_pos++ ] );
+
+	if( *analyser -> lexems[ analyser -> cur_pos ] -> value != ';' )
+	{
+		struct tree_node_t *arg = getE( analyser );
+
+		if( arg )
+			tree_set( node, left, arg );
+	}
+
+	check_syntax( ';' );
+
+	return node;
+}
+
+struct tree_node_t *getOut( struct analyser_t *analyser )
+{
+	check_pointer( analyser, NULL );
+
+	if( analyser -> lexems[ analyser -> cur_pos ] -> key != 11 )
+		return NULL;
+
+	struct tree_node_t *node =
+		tree_node_construct( analyser -> tree, NULL, analyser -> lexems[ analyser -> cur_pos++ ] );
+
+	struct tree_node_t *arg = getE( analyser );
+	check_pointer( arg, NULL );
+
+	tree_set( node, left, arg );
+
+	check_syntax( ';' );
+
+	return node;
+}
+
+struct tree_node_t *getIn( struct analyser_t *analyser )
+{
+	check_pointer( analyser, NULL );
+
+	if( analyser -> lexems[ analyser -> cur_pos ] -> key != 12 )
+		return NULL;
+
+	struct tree_node_t *node =
+		tree_node_construct( analyser -> tree, NULL, analyser -> lexems[ analyser -> cur_pos++ ] );
+
+	struct tree_node_t *arg = getE( analyser );
+	check_pointer( arg, NULL );
+
+	tree_set( node, left, arg );
+
+	check_syntax( ';' );
+
+	return node;
+}
+
 
 struct tree_node_t *getDclr( struct analyser_t *analyser )
 {
@@ -179,6 +256,8 @@ struct tree_node_t *getDclr( struct analyser_t *analyser )
 	check_pointer( var, NULL );
 
 	tree_set( node, left, var );
+
+	check_syntax( ';' );
 
 	return node;
 }
@@ -545,6 +624,27 @@ int print_lexem( FILE *out, void *elem )
 		case 8:
 		{
 			fprintf( out, "declaration" );
+
+			break;
+		}
+
+		case 9:
+		{
+			fprintf( out, "return" );
+
+			break;
+		}
+
+		case 11:
+		{
+			fprintf( out, "out" );
+
+			break;
+		}
+
+		case 12:
+		{
+			fprintf( out, "in" );
 
 			break;
 		}
