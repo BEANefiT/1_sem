@@ -21,7 +21,8 @@ enum key_t
 	ret	= 9,
 	punc	= 10,
 	out	= 11,
-	in	= 12
+	in	= 12,
+	sqrt	= 13
 };
 
 #define DEF_KW( kw, num, conds ) \
@@ -82,6 +83,7 @@ int	getDEF( struct lex_t *lexem, char *word, int word_sz );
 int	getRET( struct lex_t *lexem, char *word, int word_sz );
 int	getIN( struct lex_t *lexem, char *word, int word_sz );
 int	getOUT( struct lex_t *lexem, char *word, int word_sz );
+int	getSQRT( struct lex_t *lexem, char *word, int word_sz );
 char*	getVAL( char *src, struct lex_t *lexem );
 char*	getOPER( char *src, struct lex_t *lexem );
 char*	getBR( char *src, struct lex_t *lexem );
@@ -148,6 +150,9 @@ if( is##ARG )										\
 
 #define isIN	\
 	!strcmp( word, "scan" )
+
+#define isSQRT	\
+	!strcmp( word, "sqrt" )
 
 
 #define isOUT	\

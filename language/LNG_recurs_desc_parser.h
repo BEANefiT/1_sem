@@ -22,6 +22,7 @@ struct tree_node_t*	getDclr( struct analyser_t * );
 struct tree_node_t*	getRet( struct analyser_t * );
 struct tree_node_t*	getOut( struct analyser_t * );
 struct tree_node_t*	getIn( struct analyser_t * );
+struct tree_node_t*	getSqrt( struct analyser_t * );
 int			analyser_make_tree( struct analyser_t * );
 
 int	cmp_lexem( void *elem1, void *elem2 );

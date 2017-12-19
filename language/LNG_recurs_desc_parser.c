@@ -145,6 +145,9 @@ struct tree_node_t *getI( struct analyser_t *analyser )
 		node = getIn( analyser );
 
 	if( !node )
+		node = getSqrt( analyser );
+
+	if( !node )
 		node = getKw( analyser );
 
 	if( !node )
@@ -241,6 +244,27 @@ struct tree_node_t *getIn( struct analyser_t *analyser )
 	return node;
 }
 
+struct tree_node_t *getSqrt( struct analyser_t *analyser )
+{
+	check_pointer( analyser, NULL );
+
+	if( analyser -> lexems[ analyser -> cur_pos ] -> key != 13 )
+		return NULL;
+
+	struct tree_node_t *node =
+		tree_node_construct( analyser -> tree, NULL, analyser -> lexems[ analyser -> cur_pos++ ] );
+
+	check_syntax( '{' );
+
+	struct tree_node_t *arg = getE( analyser );
+	check_pointer( arg, NULL );
+
+	tree_set( node, left, arg );
+
+	check_syntax( '}' );
+
+	return node;
+}
 
 struct tree_node_t *getDclr( struct analyser_t *analyser )
 {

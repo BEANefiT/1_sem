@@ -70,6 +70,8 @@ int analyser_make_lexems( struct analyser_t *analyser )
 
 		check_for_word( IN, 12 )
 
+		check_for_word( SQRT, 13 )
+
 		check_for_word( KW,   3 )
 
 		check_for_word( DEF, 8 )
@@ -159,6 +161,10 @@ int getOUT( struct lex_t *lexem, char *word, int word_sz )
 }
 
 int getIN( struct lex_t *lexem, char *word, int word_sz )
+{
+}
+
+int getSQRT( struct lex_t *lexem, char *word, int word_sz )
 {
 }
 

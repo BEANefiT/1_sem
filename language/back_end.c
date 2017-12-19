@@ -224,11 +224,11 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 					struct lex_t *param = func -> params_arr[ i ];
 
 					if( param -> key == 1 )
-						fprintf( dest, "push %lg\n", param -> value );
+						fprintf( dest, "push %lg\n", param -> koeff );
 
 					if( param -> key == 4 )
 						for( int j = RAM_beg; j < RAM_end; j++ )
-							if( !strcmp( analyser -> vars[ j ] -> name, lexem -> value ) )
+							if( !strcmp( analyser -> vars[ j ] -> name, param -> value ) )
 								fprintf( dest, "push [%d]\n", j );
 				}
 
@@ -244,6 +244,8 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 			{
 				analyser -> vars[ RAM_end ] = ( struct var_t * )calloc( 1, sizeof( struct var_t ) );
 				analyser -> vars[ RAM_end ] -> name = func -> params_arr[ i ] -> value;
+				
+				fprintf( dest, "pop [%d]\n", RAM_end );
 
 				analyser -> vars[ RAM_end ] -> adrs = RAM_end++;
 				
@@ -301,6 +303,15 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 			for( int i = RAM_beg; i < RAM_end; i++ )
 				if( !strcmp( analyser -> vars[ i ] -> name, variable ) )
 					fprintf( dest, "pop [%d]\n", i );
+
+			break;
+		}
+
+		case 13:
+		{
+			back_node( analyser, L( node ), dest, normal, &RAM_beg, &RAM_end );
+
+			fprintf( dest, "sqrt\n" );
 
 			break;
 		}
