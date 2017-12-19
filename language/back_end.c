@@ -16,12 +16,18 @@ int analyser_make_asm( struct analyser_t *analyser )
 	fprintf( dest, 	"call main\n"
 			"end\n" );
 
-	back_node( analyser, tree_get_root( analyser -> tree ), dest, recurs );
+	int RAM_end = 0;
+	int RAM_beg = 0;
+
+	back_node( analyser, tree_get_root( analyser -> tree ), dest, recurs, &RAM_beg, &RAM_end );
 }
 
-int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest, enum back_type mode )
+int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest, enum back_type mode, int *RAM_b, int *RAM_e )
 {
 	struct lex_t *lexem = ( struct lex_t * )tree_get_elem( node );
+
+	int RAM_beg = *RAM_b;
+	int RAM_end = *RAM_e;
 
 	switch( lexem -> key )
 	{
@@ -34,16 +40,16 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 
 		case 2:
 		{
-			#define case_oper( operatr, cmd )					\
-				case operatr:							\
-				{								\
-					back_node( analyser, L( node ), dest, normal );		\
-												\
-					back_node( analyser, R( L( node ) ), dest, normal );	\
-												\
-					fprintf( dest, #cmd"\n" );				\
-												\
-					break;							\
+			#define case_oper( operatr, cmd )							\
+				case operatr:									\
+				{										\
+					back_node( analyser, L( node ), dest, normal, &RAM_beg, &RAM_end );	\
+														\
+					back_node( analyser, R( L( node ) ), dest, normal, &RAM_beg, &RAM_end );\
+														\
+					fprintf( dest, #cmd"\n" );						\
+														\
+					break;									\
 				}
 
 			switch( *lexem -> value )
@@ -55,11 +61,11 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 				
 				case '=':
 				{
-					back_node( analyser, R( L( node ) ), dest, normal );
+					back_node( analyser, R( L( node ) ), dest, normal, &RAM_beg, &RAM_end );
 
 					char *variable = ( (struct lex_t * )tree_get_elem( L( node ) ) ) -> value;
 
-					for( int i = 0; i < RAM_COUNTER; i++ )
+					for( int i = RAM_beg; i < RAM_end; i++ )
 						if( !strcmp( analyser -> vars[ i ] -> name, variable ) )
 							fprintf( dest, "pop [%d]\n", i );
 
@@ -82,9 +88,9 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 				#define if_oper( symb, cmd )							\
 					if( *fst_cond -> value == symb )					\
 					{									\
-						back_node( analyser, L( L( L( node ) ) ), dest, normal );	\
+						back_node( analyser, L( L( L( node ) ) ), dest, normal, &RAM_beg, &RAM_end );	\
 														\
-						back_node( analyser, R( L( L( L( node ) ) ) ), dest, normal );	\
+						back_node( analyser, R( L( L( L( node ) ) ) ), dest, normal, &RAM_beg, &RAM_end );	\
 														\
 						fprintf( dest, #cmd" %d\n", LABEL_COUNTER );			\
 					}
@@ -100,7 +106,7 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 
 				if( ne( '<' ) && ne( '>' ) && ne( '?' ) )
 				{
-					back_node( analyser, L( L( node ) ), dest, normal );
+					back_node( analyser, L( L( node ) ), dest, normal, &RAM_beg, &RAM_end );
 				
 					fprintf( dest, 	"push 0\n"
 							"je %d\n", LABEL_COUNTER );
@@ -108,7 +114,7 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 
 				#undef ne
 
-				back_node( analyser, R( L( node ) ), dest, recurs );
+				back_node( analyser, R( L( node ) ), dest, recurs, &RAM_beg, &RAM_end );
 
 				fprintf( dest, "label %d\n", LABEL_COUNTER++ );
 
@@ -119,7 +125,7 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 			{
 				fprintf( dest, "label %d\n", LABEL_COUNTER );
 
-				back_node( analyser, R( L( node ) ), dest, recurs );
+				back_node( analyser, R( L( node ) ), dest, recurs, &RAM_beg, &RAM_end );
 
 				struct lex_t *fst_cond = ( struct lex_t * )tree_get_elem( L( L( node ) ) );
 				check_pointer( fst_cond, 1 );
@@ -127,9 +133,9 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 				#define if_oper( symb, cmd )							\
 					if( *fst_cond -> value == symb )					\
 					{									\
-						back_node( analyser, L( L( L( node ) ) ), dest, normal );	\
+						back_node( analyser, L( L( L( node ) ) ), dest, normal, &RAM_beg, &RAM_end );	\
 														\
-						back_node( analyser, R( L( L( L( node ) ) ) ), dest, normal );	\
+						back_node( analyser, R( L( L( L( node ) ) ) ), dest, normal, &RAM_beg, &RAM_end );	\
 														\
 						fprintf( dest, #cmd" %d\n", LABEL_COUNTER++ );			\
 					}
@@ -145,7 +151,7 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 
 				if( ne( '<' ) && ne( '>' ) && ne( '?' ) )
 				{
-					back_node( analyser, L( L( node ) ), dest, normal );
+					back_node( analyser, L( L( node ) ), dest, normal, &RAM_beg, &RAM_end );
 				
 					fprintf( dest, 	"push 0\n"
 							"jne %d\n", LABEL_COUNTER++ );
@@ -156,23 +162,23 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 
 			if( *lexem -> value == '4' )
 			{
-				back_node( analyser, L( L( node ) ), dest, normal );
+				back_node( analyser, L( L( node ) ), dest, normal, &RAM_beg, &RAM_end );
 
 				fprintf( dest, "label %d\n", LABEL_COUNTER );
 
-				back_node( analyser, R( L( node ) ), dest, recurs );
+				back_node( analyser, R( L( node ) ), dest, recurs, &RAM_beg, &RAM_end );
 
-				back_node( analyser, R( R( L( L( node ) ) ) ), dest, normal );
+				back_node( analyser, R( R( L( L( node ) ) ) ), dest, normal, &RAM_beg, &RAM_end );
 
 				struct lex_t *fst_cond = ( struct lex_t * )tree_get_elem( R( L( L( node ) ) ) );
 				check_pointer( fst_cond, 1 );
 
-				#define if_oper( symb, cmd )								\
-					if( *fst_cond -> value == symb )						\
+					#define if_oper( symb, cmd )							\
+						if( *fst_cond -> value == symb )					\
 					{										\
-						back_node( analyser, L( R( L( L( node ) ) ) ), dest, normal );		\
+						back_node( analyser, L( R( L( L( node ) ) ) ), dest, normal, &RAM_beg, &RAM_end );		\
 															\
-						back_node( analyser, R( L( R( L( L( node ) ) ) ) ), dest, normal );	\
+						back_node( analyser, R( L( R( L( L( node ) ) ) ) ), dest, normal, &RAM_beg, &RAM_end );	\
 															\
 						fprintf( dest, #cmd" %d\n", LABEL_COUNTER++ );				\
 					}
@@ -188,7 +194,7 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 
 				if( ne( '<' ) && ne( '>' ) && ne( '?' ) )
 				{
-					back_node( analyser, R( L( L( node ) ) ), dest, normal );
+					back_node( analyser, R( L( L( node ) ) ), dest, normal, &RAM_beg, &RAM_end );
 				
 					fprintf( dest, 	"push 0\n"
 							"jne %d\n", LABEL_COUNTER++ );
@@ -200,7 +206,7 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 
 		case 4:
 		{
-			for( int i = 0; i < RAM_COUNTER; i++ )
+			for( int i = RAM_beg; i < RAM_end; i++ )
 				if( !strcmp( analyser -> vars[ i ] -> name, lexem -> value ) )
 					fprintf( dest, "push [%d]\n", i );
 
@@ -213,31 +219,54 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 
 			if( func -> mode == call )
 			{
+				for( int i = 0; i < func -> param_count; i++ )
+				{
+					struct lex_t *param = func -> params_arr[ i ];
+
+					if( param -> key == 1 )
+						fprintf( dest, "push %lg\n", param -> value );
+
+					if( param -> key == 4 )
+						for( int j = RAM_beg; j < RAM_end; j++ )
+							if( !strcmp( analyser -> vars[ j ] -> name, lexem -> value ) )
+								fprintf( dest, "push [%d]\n", j );
+				}
+
 				fprintf( dest, "call %s\n", lexem -> value );
 
 				break;
 			}
 
+			RAM_beg = RAM_COUNTER;
+			RAM_end = RAM_COUNTER;
+
+			for( int i = 0; i < func -> param_count; i++ )
+			{
+				analyser -> vars[ RAM_end ] = ( struct var_t * )calloc( 1, sizeof( struct var_t ) );
+				analyser -> vars[ RAM_end ] -> name = func -> params_arr[ i ] -> value;
+
+				analyser -> vars[ RAM_end ] -> adrs = RAM_end++;
+				
+				RAM_COUNTER++;
+			}
+
 			fprintf( dest, "label %s\n", func -> name );
 
-			back_node( analyser, L( node ), dest, recurs );
+			back_node( analyser, L( node ), dest, recurs, &RAM_beg, &RAM_end );
 
 			fprintf( dest, "ret\n" );
 
 			break;
 		}
 
-		case 7:
-		{
-			
-		}
-
 		case 8:
 		{
-			analyser -> vars[ RAM_COUNTER ] = ( struct var_t * )calloc( 1, sizeof( struct var_t ) );
-			analyser -> vars[ RAM_COUNTER ] -> name = ( ( struct lex_t * )tree_get_elem( L( node ) ) ) -> value;
+			analyser -> vars[ RAM_end ] = ( struct var_t * )calloc( 1, sizeof( struct var_t ) );
+			analyser -> vars[ RAM_end ] -> name = ( ( struct lex_t * )tree_get_elem( L( node ) ) ) -> value;
 
-			analyser -> vars[ RAM_COUNTER ] -> adrs = RAM_COUNTER++;
+			analyser -> vars[ RAM_end++ ] -> adrs = (*RAM_e)++;
+
+			RAM_COUNTER++;
 
 			break;
 		}
@@ -245,5 +274,5 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 
 	if( mode == recurs )
 		if( tree_get_next( node, right ) )
-			back_node( analyser, R( node ), dest, recurs );
+			back_node( analyser, R( node ), dest, recurs, &RAM_beg, &RAM_end );
 }

@@ -8,7 +8,7 @@ enum back_type
 };
 
 int	analyser_make_asm( struct analyser_t * );
-int	back_node( struct analyser_t *, struct tree_node_t *, FILE *, enum back_type mode );
+int	back_node( struct analyser_t *, struct tree_node_t *, FILE *, enum back_type mode, int *RAM_beg, int *RAM_end );
 
 #define L( node ) tree_get_next( node, left )
 
