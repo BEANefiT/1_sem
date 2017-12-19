@@ -87,7 +87,7 @@ DEF_CMD( DIV, div, 10, { to_exe( &CMD_DIV, int ); }, sizeof( int ), binary_cmd( 
 DEF_CMD( SUB, sub, 11, { to_exe( &CMD_SUB, int ); }, sizeof( int ), binary_cmd( - ) );
 DEF_CMD( OUT, out, 12, { to_exe( &CMD_OUT, int ); }, sizeof( int ), {
 									double value = 0;
-									Top( values, &value );
+									Pop( values, &value );
 									printf( "%lg\n", value );
 								    });
 DEF_CMD( LABEL, label, 13, ,  0;
