@@ -1,4 +1,5 @@
 CC=gcc
 CFLAGS=-I./../log/ -I./
-compilier: ./Compiler.c ./Compiler.h ./commands.h
-			$(CC) -o ./../$@ ./Compiler.c $(CFLAGS)
+
+./../asm_compiler: ./Compiler.c ./Compiler.h ./commands.h
+	@$(CC) -o $@ ./Compiler.c $(CFLAGS)
