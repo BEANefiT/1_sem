@@ -262,10 +262,6 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 
 			back_node( analyser, L( node ), dest, recurs, &RAM_beg, &RAM_end );
 
-			fprintf( dest, "ret\n" );
-
-
-
 			break;
 		}
 
