@@ -7,7 +7,8 @@ enum Compilier_modes
 struct labels_t
 {
 	char*	name;
-	size_t	pos;
+	int	    pos;
+    int     elf_offs;
 };
 
 struct Compilier_structure

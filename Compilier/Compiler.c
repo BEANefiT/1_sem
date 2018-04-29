@@ -41,7 +41,7 @@ char *get_src( char *src_file_name, struct Compilier_structure *Compilier )
 	char *src = ( char * )calloc( sizeof( char ), Compilier -> src_sz );
 	fread( src, sizeof( char ), Compilier -> src_sz, src_file );
 	fclose( src_file );
-	Compilier -> exe = calloc( Compilier -> src_sz, sizeof( double ) );
+	Compilier -> exe = calloc( Compilier -> src_sz, sizeof( int/*double*/ ) );
 	return src;
 }
 
@@ -55,7 +55,7 @@ size_t srcSize( FILE *src )
 
 int compile( struct Compilier_structure *Compilier )
 {
-	#define DEF_CMD( NAME,  name, num, Cmplr_code2, Cmplr_code1, CPU_code )	\
+	#define DEF_CMD( NAME,  name, num, Cmplr_code2, Cmplr_code1, elf, CPU_code )	\
 		const int CMD_##NAME = num;
 
 	#include <commands.h>
@@ -68,16 +68,18 @@ int compile( struct Compilier_structure *Compilier )
 
 	if( Compilier -> mode == first )
 	{
+        int elf_cur = 0;
 		while( src_cur < Compilier -> src_sz )
 		{
 			char *str = ( char * )calloc( 10, sizeof( char ) );
 			from_src( %s, str );
-			#define DEF_CMD( NAME, name, num, Cmplr_code2, Cmplr_code1, CPU_code )		\
+			#define DEF_CMD( NAME, name, num, Cmplr_code2, Cmplr_code1, elf, CPU_code )		\
 			do										\
 			{										\
 				if( strcmp( str, #name ) == 0 )						\
 				{									\
 					exe_cur += Cmplr_code1;						\
+                    elf_cur += elf;                 \
 				}									\
 			}while( 0 )
 
@@ -96,7 +98,7 @@ int compile( struct Compilier_structure *Compilier )
 		{
 			char *str = ( char * )calloc( 10, sizeof( char ) );
 			from_src( %s, str );
-			#define DEF_CMD( NAME, name, num, Cmplr_code2, Cmplr_code1,  CPU_code )	\
+			#define DEF_CMD( NAME, name, num, Cmplr_code2, Cmplr_code1, elf,  CPU_code )	\
 			do										\
 			{										\
 				if( strcmp( str, #name ) == 0 )						\

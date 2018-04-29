@@ -23,12 +23,12 @@ int main()
 
 int CPU_construct( struct CPU_structure *CPU )
 {
-	stack( double, values );
+	stack( /*double*/int, values );
 	stack( size_t, rets );
 	( CPU ) -> values = values;
 	( CPU ) -> rets = rets;
-	( CPU ) -> registers = ( double * )calloc( 4, sizeof( double ) );
-	( CPU ) -> RAM = ( double * )calloc( RAM_SZ, sizeof( double ) );
+	( CPU ) -> registers = ( int * )calloc( 4, sizeof( int ) ); //( double * )calloc( 4, sizeof( double ) );
+	( CPU ) -> RAM = ( int * )calloc( RAM_SZ, sizeof (int ) );  //( double * )calloc( RAM_SZ, sizeof( double ) );
 	( CPU ) -> RAM_sz = RAM_SZ;
 	( CPU ) -> exe_sz = 0;
 	( CPU ) -> exe = getcode( CPU );
@@ -43,7 +43,7 @@ int run( struct CPU_structure *CPU )
 		switch( cmd )
 		{
 
-			#define DEF_CMD( NAME, name, num, Cmplr_code2, Cmplr_code1, CPU_code );	\
+			#define DEF_CMD( NAME, name, num, Cmplr_code2, Cmplr_code1, elf, CPU_code );	\
 				case num:							\
 				{								\
 					CPU_code;						\

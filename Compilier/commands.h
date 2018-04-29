@@ -8,42 +8,44 @@ DEF_CMD( PUSH, push, 1, {
 				push_type();
 				int cmd = CMD_PUSH + push_type;
 				to_exe( &cmd, int );
-				if( push_type != 0 )
-				{
+				/*if( push_type != 0 )
+				{*/
 					to_exe( arg, int );
-				}
+				/*}
 				else
 				{
 					to_exe( arg, double );
-				}
+				}*/
 				free( arg );
 			},
 
-      2 * sizeof( int );{
+      2 * sizeof( int ),
+
+      1;{
 				int push_type = 0;
 				void *arg = calloc( 1, sizeof( int ) );
 				push_type();
 				free( arg );
 				if( push_type == 0 )
-					exe_cur += sizeof( int );
+					elf_cur += 5;
       			},
 
 			{
-				double value = 0;
-				from_exe( &value, double );
+				int/*double*/ value = 0;
+				from_exe( &value, int/*double*/ );
 				Push( values, &value );
 			});
-DEF_CMD( PUSHR, push, 2, , 0, {
-				double value = 0;
+DEF_CMD( PUSHR, push, 2, , 0, 0, {
+				int/*double*/ value = 0;
 				REG_read( value );
 				Push( values, &value );
 			      });
-DEF_CMD( RAMPUSH, push, 3, , 0, {
+DEF_CMD( RAMPUSH, push, 3, , 0, 0, {
 					int index = 0;
 					from_exe( &index, int );
 					RAMPUSH_code();
 				});
-DEF_CMD( RAMPUSHR, push, 4, , 0, {
+DEF_CMD( RAMPUSHR, push, 4, , 0, 0, {
 					int index = 0;
 					REG_read( index );
 					RAMPUSH_code();
@@ -59,36 +61,38 @@ DEF_CMD( POPR, pop, 5, {
 			},
 
 			2 * sizeof( int ),
+            
+            1,
 			
 			{
-				double value = 0;
+				int/*double*/ value = 0;
 				Pop( values, &value );
 				REG_write( value );
 			});
-DEF_CMD( RAMPOP, pop, 6, , 0, {
+DEF_CMD( RAMPOP, pop, 6, , 0, 0, {
 				int index = 0;
 				from_exe( &index, int );
-				double value = 0;
+				int/*double*/ value = 0;
 				Pop( values, &value );
 				RAM_sz_check( index );
 				( ( CPU ) -> RAM )[ index ] = value;
 			      });
-DEF_CMD( RAMPOPR, pop, 7, , 0, {
-				double index = 0;
+DEF_CMD( RAMPOPR, pop, 7, , 0, 0, {
+				int/*double*/ index = 0;
 				REG_read( index );
 				RAM_sz_check( index );
-				double value = 0;
+				int/*double*/ value = 0;
 				Pop( values, &value );
 				( ( CPU ) -> RAM )[ ( int )index ] = value;
 			       });
-DEF_CMD( ADD, add, 8,  { to_exe( &CMD_ADD, int ); }, sizeof( int ), binary_cmd( + ) );
-DEF_CMD( MUL, mul, 9,  { to_exe( &CMD_MUL, int ); }, sizeof( int ), binary_cmd( * ) );
-DEF_CMD( DIV, div, 10, { to_exe( &CMD_DIV, int ); }, sizeof( int ), binary_cmd( / ) );
-DEF_CMD( SUB, sub, 11, { to_exe( &CMD_SUB, int ); }, sizeof( int ), binary_cmd( - ) );
-DEF_CMD( OUT, out, 12, { to_exe( &CMD_OUT, int ); }, sizeof( int ), {
-									double value = 0;
+DEF_CMD( ADD, add, 8,  { to_exe( &CMD_ADD, int ); }, sizeof( int ), 6, binary_cmd( + ) );
+DEF_CMD( MUL, mul, 9,  { to_exe( &CMD_MUL, int ); }, sizeof( int ), 6, binary_cmd( * ) );
+DEF_CMD( DIV, div, 10, { to_exe( &CMD_DIV, int ); }, sizeof( int ), 6, binary_cmd( / ) );
+DEF_CMD( SUB, sub, 11, { to_exe( &CMD_SUB, int ); }, sizeof( int ), 6, binary_cmd( - ) );
+DEF_CMD( OUT, out, 12, { to_exe( &CMD_OUT, int ); }, sizeof( int ), 72, {
+									int/*double*/ value = 0;
 									Pop( values, &value );
-									printf( "%lg\n", value );
+									printf( "%d\n", value );
 								    });
 DEF_CMD( LABEL, label, 13, ,  0;
 					char *label = ( char * )calloc( MAX_LABEL_LENGTH, sizeof( char ) );
@@ -103,10 +107,14 @@ DEF_CMD( LABEL, label, 13, ,  0;
 
 					strcpy( newlabel -> name, label );
 					newlabel -> pos =
-						( size_t )exe_cur - ( size_t )( Compilier -> exe );
+						( int )exe_cur - ( int )( Compilier -> exe );
+
+                    newlabel -> elf_offs = elf_cur;
 
 					Compilier -> labels[ Compilier -> lbl_count++ ] = newlabel;
 				,
+            
+                0,
 
 				{
 
@@ -116,11 +124,14 @@ DEF_CMD( JMP, jmp, 14,  {
 				CMD_JMP_code();
 			},
 
-			sizeof( int ) + sizeof( size_t ),
+			sizeof( int ) + 2 * sizeof( int ),
 			
+            2,
+
 			{
-				size_t tmp = 0;
-				from_exe( &tmp, size_t );
+				int tmp = 0;
+				from_exe( &tmp, int );
+                CPU -> exe_cur += 4;
 				( CPU ) -> exe_cur =  ( CPU ) -> exe + tmp ;
 			});
 DEF_CMD( JE, je, 15,    {
@@ -128,8 +139,10 @@ DEF_CMD( JE, je, 15,    {
 				CMD_JMP_code();
 			},
 
-			sizeof( int ) + sizeof( size_t ),
+			sizeof( int ) + 2 * sizeof( int ),
 			
+            2,
+
 			{
 				JmpIf( == );
 			});
@@ -138,8 +151,10 @@ DEF_CMD( JNE, jne, 16,  {
 				CMD_JMP_code();
 			},
 
-			sizeof( int ) + sizeof( size_t ),
+			sizeof( int ) + 2 * sizeof( int ),
 			
+            2,
+
 			{
 				JmpIf( != );
 			});
@@ -148,8 +163,10 @@ DEF_CMD( JA, ja, 17,    {
 				CMD_JMP_code();
 			},
 
-			sizeof( int ) + sizeof( size_t ),
+			sizeof( int ) + 2 * sizeof( int ),
 			
+            2,
+
 			{
 				JmpIf( > );
 			});
@@ -158,8 +175,10 @@ DEF_CMD( JAE, jae, 18,  {
 				CMD_JMP_code();
 			},
 
-			sizeof( int ) + sizeof( size_t ),
+			sizeof( int ) + 2 * sizeof( int ),
 			
+            2,
+
 			{
 				JmpIf( >= );
 			});
@@ -168,8 +187,10 @@ DEF_CMD( JB, jb, 19,    {
 				CMD_JMP_code();
 			},
 
-			sizeof( int ) + sizeof( size_t ),
+			sizeof( int ) + 2 * sizeof( int ),
 			
+            2,
+
 			{
 				JmpIf( < );
 			});
@@ -178,8 +199,10 @@ DEF_CMD( JBE, jbe, 20,  {
 				CMD_JMP_code();
 			},
 
-			sizeof( int ) + sizeof( size_t ),
+			sizeof( int ) + 2 * sizeof( int ),
 			
+            2,
+
 			{
 				JmpIf( <= );
 			});
@@ -188,82 +211,85 @@ DEF_CMD( CALL, call, 21,{
 				CMD_JMP_code();
 			},
 
-			sizeof( int ) + sizeof( size_t ),
+			sizeof( int ) + 2 * sizeof( int ),
 			
+            2,
+
 			{
 				size_t ret = ( size_t )(( CPU ) -> exe_cur) - ( size_t )(( CPU ) -> exe ) + sizeof( size_t );
 				Push( rets, &ret );
 				size_t tmp = 0;
 				from_exe( &tmp, size_t );
+                CPU -> exe_cur += 4;
 				( CPU ) -> exe_cur = ( CPU ) -> exe + tmp;
 			});
-DEF_CMD( RET, ret, 22, { to_exe( &CMD_RET, int ); }, sizeof( int ), {
+DEF_CMD( RET, ret, 22, { to_exe( &CMD_RET, int ); }, sizeof( int ), 1, {
 									size_t ret = 0;
 									Pop( rets, &ret );
 									( CPU ) -> exe_cur = ( CPU ) -> exe + ret;
 								    });
-DEF_CMD( SQRT, sqrt, 23, { to_exe( &CMD_SQRT, int ); }, sizeof( int ), unary_cmd( sqrt ) );
-DEF_CMD( IN, in, 24, { to_exe( &CMD_IN, int ); }, sizeof( int ), {
-									double value = 0;
-									scanf( "%lg", &value );
+DEF_CMD( SQRT, sqrt, 23, { to_exe( &CMD_SQRT, int ); }, sizeof( int ), 0, unary_cmd( sqrt ) );
+DEF_CMD( IN, in, 24, { to_exe( &CMD_IN, int ); }, sizeof( int ), 0, {
+									int/*double*/ value = 0;
+									scanf( "%d", &value );
 									Push( values, &value );
 								 });
-DEF_CMD( SIN, sin, 25, { to_exe( &CMD_SIN, int ); }, sizeof( int ), unary_cmd( sin ) );
-DEF_CMD( COS, cos, 26, { to_exe( &CMD_COS, int ); }, sizeof( int ), unary_cmd( cos ) );
-DEF_CMD( TG, tan, 27, { to_exe( &CMD_TG, int ); }, sizeof( int ), unary_cmd( tan ) );
-DEF_CMD( CAT, cat, 28, { to_exe( &CMD_CAT, int ); }, sizeof( int ), DrawCat(); );
-DEF_CMD( END, end, 29, { to_exe( &CMD_END, int ); }, sizeof( int ), return 0 );
+DEF_CMD( SIN, sin, 25, { to_exe( &CMD_SIN, int ); }, sizeof( int ), 0, unary_cmd( sin ) );
+DEF_CMD( COS, cos, 26, { to_exe( &CMD_COS, int ); }, sizeof( int ), 0, unary_cmd( cos ) );
+DEF_CMD( TG, tan, 27, { to_exe( &CMD_TG, int ); }, sizeof( int ), 0, unary_cmd( tan ) );
+DEF_CMD( CAT, cat, 28, { to_exe( &CMD_CAT, int ); }, sizeof( int ), 0, DrawCat(); );
+DEF_CMD( END, end, 29, { to_exe( &CMD_END, int ); }, sizeof( int ), 12, return 0 );
 #endif /*DEF_CMD*/
 
 #ifndef _COMMANDS_H_
 #define _COMMANDS_H_
 
 #ifdef _Compilier_
-#define push_type()							\
-do									\
-{									\
-	char *tmp = ( char * )calloc( 8, sizeof( char ) );		\
-	char tmpc = 0;							\
-	check_src( %c, &tmpc );						\
-	while( tmpc == ' ' )						\
-	{								\
-		src_cur += 1;						\
-		check_src( %c, &tmpc );					\
-	}								\
-	if( tmpc == '[' )						\
-	{								\
-		check_src( [%[^]]], tmp );				\
-		if( ifreg( tmp ) )					\
-		{							\
-			push_type = 3;					\
-			REG_READ_code();				\
-		}							\
-		else							\
-		{							\
-			push_type = 2;					\
-			int index;					\
-			src_cur += 1;					\
-			from_src( %d, &index );				\
+#define push_type()							            \
+do									                    \
+{									                    \
+	char *tmp = ( char * )calloc( /*8*/4, sizeof( char ) );  \
+	char tmpc = 0;							            \
+	check_src( %c, &tmpc );						        \
+	while( tmpc == ' ' )						        \
+	{								                    \
+		src_cur += 1;						            \
+		check_src( %c, &tmpc );					        \
+	}								                    \
+	if( tmpc == '[' )						            \
+	{								                    \
+		check_src( [%[^]]], tmp );				        \
+		if( ifreg( tmp ) )					            \
+		{							                    \
+			push_type = 3;					            \
+			REG_READ_code();				            \
+		}							                    \
+		else							                \
+		{							                    \
+			push_type = 2;					            \
+			int index;					                \
+			src_cur += 1;					            \
+			from_src( %d, &index );				        \
 			memcpy( arg, &index, sizeof( int ) );		\
-		}							\
-	}								\
-	else								\
-	{								\
-		check_src( %s, tmp );					\
-		if( ifreg( tmp ) )					\
-		{							\
-			push_type = 1;					\
-			REG_READ_code();				\
-		}							\
-		else							\
-		{							\
-			arg = realloc( arg, sizeof( double ) );		\
-			double value = 0;				\
-			from_src( %lg, &value );			\
-			memcpy( arg, &value, sizeof( double ) );	\
-		}							\
-	}								\
-	free( tmp );							\
+		}							                    \
+	}								                    \
+	else								                \
+	{								                    \
+		check_src( %s, tmp );					        \
+		if( ifreg( tmp ) )					            \
+		{							                    \
+			push_type = 1;					            \
+			REG_READ_code();				            \
+		}							                    \
+		else							                \
+		{							                    \
+			/*arg = realloc( arg, sizeof( double ) );	    \
+			double*/int value = 0;				            \
+			from_src( %d/*lg*/, &value );			        \
+			memcpy( arg, &value, sizeof( int ) );/*double ) );*/   \
+		}							                    \
+	}								                    \
+	free( tmp );							            \
 } while( 0 )
 
 #define REG_READ_code()							\
@@ -271,31 +297,32 @@ do									\
 {									\
 	int reg_num = 0;						\
 	if( strcmp( tmp, "ax" ) == 0 )					\
-		reg_num = 1;						\
+		reg_num = 0;						\
 	if( strcmp( tmp, "bx" ) == 0 )					\
-		reg_num = 2;						\
-	if( strcmp( tmp, "cx" ) == 0 )					\
 		reg_num = 3;						\
+	if( strcmp( tmp, "cx" ) == 0 )					\
+		reg_num = 1;						\
 	if( strcmp( tmp, "dx" ) == 0 )					\
-		reg_num = 4;						\
+		reg_num = 2;						\
 	memcpy( arg, &reg_num, sizeof( int ) );				\
 } while( 0 )
 
-#define CMD_JMP_code()								\
-do										\
-{										\
-	char *label = ( char * )calloc( MAX_LABEL_LENGTH, sizeof( char ) );	\
-	from_src( %s, label );							\
-										\
-	for( int i = 0; i < Compilier -> lbl_count; i++ )			\
-	{									\
-		if( !strcmp( Compilier -> labels[ i ] -> name, label ) )	\
-		{								\
-			to_exe( &( Compilier -> labels[ i ] -> pos ), size_t );	\
-										\
-			break;							\
-		}								\
-	}									\
+#define CMD_JMP_code()								                    \
+do										                                \
+{										                                \
+	char *label = ( char * )calloc( MAX_LABEL_LENGTH, sizeof( char ) ); \
+	from_src( %s, label );							                    \
+										                                \
+	for( int i = 0; i < Compilier -> lbl_count; i++ )			        \
+	{									                                \
+		if( !strcmp( Compilier -> labels[ i ] -> name, label ) )	    \
+		{								                                \
+			to_exe( &( Compilier -> labels[ i ] -> pos ), int );	    \
+            to_exe( &( Compilier -> labels[ i ] -> elf_offs), int);     \
+										                                \
+			break;							                            \
+		}								                                \
+	}									                                \
 } while( 0 )
 
 #define ifreg( tmp ) strcmp( tmp, "ax" ) == 0 || strcmp( tmp, "bx" ) == 0 || strcmp( tmp, "cx" ) == 0 || strcmp( tmp, "dx" ) == 0
@@ -367,19 +394,19 @@ do							\
 #define binary_cmd( operator )				\
 do							\
 {							\
-	double value1 = 0, value2 = 0;			\
+	/*double*/int value1 = 0, value2 = 0;			\
 	Do( pop( ( CPU ) -> values, &value1 ) );	\
 	Do( pop( ( CPU ) -> values, &value2 ) );	\
-	double result = value2 operator value1;		\
+	/*double*/int result = value2 operator value1;		\
 	Do( push( ( CPU ) -> values, &result ) );	\
 } while( 0 )
 
 #define unary_cmd( operator )			\
 do						\
 {						\
-	double value = 0;			\
+	/*double*/int value = 0;			\
 	Pop( values, &value );			\
-	double result = operator( value );	\
+	/*double*/int result = operator( value );	\
 	Push( values, &result );		\
 } while( 0 )
 
@@ -390,7 +417,7 @@ do							\
 	{						\
 							\
 	}						\
-	double value = ( ( CPU ) -> RAM )[ index ];	\
+	/*double*/int value = ( ( CPU ) -> RAM )[ index ];	\
 	Push( values, &value );				\
 } while( 0 )
 
@@ -399,33 +426,53 @@ do													\
 {													\
 	if( size >= ( CPU ) -> RAM_sz )									\
 	{												\
-		( CPU ) -> RAM = ( double * )realloc( ( CPU ) -> RAM, ( size + 1 ) * sizeof( double ) );\
+		( CPU ) -> RAM = ( /*double*/int * )realloc( ( CPU ) -> RAM, ( size + 1 ) * sizeof( int/*double*/ ) );\
 		( CPU ) -> RAM_sz = size + 1;								\
 	}												\
 } while( 0 )
 
-#define JmpIf( operator )					\
-do								\
-{								\
-	double value1 = 0, value2 = 0;				\
-	Pop( values, &value1 );					\
-	Pop( values, &value2 );					\
-	if( value2 operator value1 )				\
-	{							\
-		size_t tmp = 0;					\
-		from_exe( &tmp, size_t );			\
+#define JmpIf( operator )					        \
+do								                    \
+{								                    \
+	int/*double*/ value1 = 0, value2 = 0;		    \
+	Pop( values, &value1 );					        \
+	Pop( values, &value2 );					        \
+	if( value2 operator value1 )				    \
+	{							                    \
+		size_t tmp = 0;					            \
+		from_exe( &tmp, size_t );			        \
+        CPU -> exe_cur += 4;                        \
 		( CPU ) -> exe_cur = ( CPU ) -> exe + tmp;	\
-	}							\
-	else							\
-	{							\
+	}							                    \
+	else							                \
+	{							                    \
 		( CPU ) -> exe_cur += sizeof( size_t );		\
-	}							\
+	}							                    \
 } while( 0 )
 
-#define DrawCat()	\
-do			\
-{			\
-	printf( "             *     ,MMM8&&&.            *\n                  MMMM88&&&&&    .\n                 MMMM88&&&&&&&\n     *           MMM88&&&&&&&&\n                 MMM88&&&&&&&&\n                 'MMM88&&&&&&'\n                   'MMM8&&&'      *\n          |\\___/|\n          )     (             .              '\n         =\\     /=\n           )===(       *\n          /     \\\n          |     |\n         /       \\\n         \\       /\n  _/\\_/\\_/\\__  _/_/\\_/\\_/\\_/\\_/\\_/\\_/\\_/\\_/\\_\n  |  |  |  |( (  |  |  |  |  |  |  |  |  |  |\n  |  |  |  | ) ) |  |  |  |  |  |  |  |  |  |\n  |  |  |  |(_(  |  |  |  |  |  |  |  |  |  |\n  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |\n" ); \
+#define DrawCat()	                                                    \
+do			                                                            \
+{			                                                            \
+	printf( "             *     ,MMM8&&&.            *\n"               \
+            "                  MMMM88&&&&&    .\n"                      \
+            "                 MMMM88&&&&&&&\n"                          \
+            "     *           MMM88&&&&&&&&\n"                          \
+            "                 MMM88&&&&&&&&\n"                          \
+            "                 'MMM88&&&&&&'\n"                          \
+            "                   'MMM8&&&'      *\n"                     \
+            "          |\\___/|\n"                                      \
+            "          )     (             .              '\n"          \
+            "         =\\     /=\n"                                     \
+            "           )===(       *\n"                                \
+            "          /     \\\n"                                      \
+            "          |     |\n"                                       \
+            "         /       \\\n"                                     \
+            "         \\       /\n"                                     \
+            "  _/\\_/\\_/\\__  _/_/\\_/\\_/\\_/\\_/\\_/\\_/\\_/\\_/\\_\n"\
+            "  |  |  |  |( (  |  |  |  |  |  |  |  |  |  |\n"           \
+            "  |  |  |  | ) ) |  |  |  |  |  |  |  |  |  |\n"           \
+            "  |  |  |  |(_(  |  |  |  |  |  |  |  |  |  |\n"           \
+            "  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |\n" );        \
 } while( 0 )
 
 #endif /*_CPU_*/

@@ -40,16 +40,16 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 
 		case 2:
 		{
-			#define case_oper( operatr, cmd )							\
-				case operatr:									\
-				{										\
-					back_node( analyser, L( node ), dest, normal, &RAM_beg, &RAM_end );	\
-														\
+			#define case_oper( operatr, cmd )							                    \
+				case operatr:									                            \
+				{										                                    \
+					back_node( analyser, L( node ), dest, normal, &RAM_beg, &RAM_end );	    \
+														                                    \
 					back_node( analyser, R( L( node ) ), dest, normal, &RAM_beg, &RAM_end );\
-														\
-					fprintf( dest, #cmd"\n" );						\
-														\
-					break;									\
+														                                    \
+					fprintf( dest, #cmd"\n" );						                        \
+														                                    \
+					break;									                                \
 				}
 
 			switch( *lexem -> value )

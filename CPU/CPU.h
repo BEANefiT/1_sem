@@ -2,8 +2,8 @@ struct CPU_structure
 {
 	stack_t *values;
 	stack_t *rets;
-	double *RAM;
-	double *registers;
+	/*double*/int *RAM;
+	/*double*/int *registers;
 	size_t RAM_sz;
 	size_t exe_sz;
 	void *exe;
