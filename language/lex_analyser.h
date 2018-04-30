@@ -5,7 +5,7 @@
 
 #define LEX_ANALYSER_MAX_VALUE_LENGTH 64
 #define MAX_LEXEMS_COUNT 8192
-#define RAM_SZ 1028 	//one more define of RAM_SZ in CPU.c
+#define RAM_SZ 128 	//one more define of RAM_SZ in CPU.c
 #define MAX_VAR_LENGTH 16
 
 enum key_t
@@ -18,10 +18,10 @@ enum key_t
 	func    = 6,
 	cond	= 7,
 	dclr	= 8,
-	ret	= 9,
+	ret	    = 9,
 	punc	= 10,
-	out	= 11,
-	in	= 12,
+	out	    = 11,
+	in	    = 12,
 	sqrt	= 13
 };
 
@@ -68,9 +68,9 @@ enum func_act
 
 struct func_t
 {
-	struct lex_t**	params_arr;
-	char*		name;
-	int		param_count;
+	struct lex_t**  params_arr;
+	char*		    name;
+	int		        param_count;
 	enum func_act	mode;
 };
 

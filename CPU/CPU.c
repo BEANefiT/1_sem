@@ -8,7 +8,7 @@
 #include <CPU.h>
 #include <commands.h>
 
-#define RAM_SZ 1028 //one more define of RAM_SZ in lex_analyser.h
+#define RAM_SZ 128 //one more define of RAM_SZ in lex_analyser.h
 
 int main()
 {

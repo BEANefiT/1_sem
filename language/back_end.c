@@ -6,8 +6,8 @@
 #include "./../log/log.h"
 #include "back_end.h"
 
-int	RAM_COUNTER = 0;
-int	LABEL_COUNTER = 0;
+int	RAM_COUNTER     = 0;
+int	LABEL_COUNTER   = 0;
 
 int analyser_make_asm( struct analyser_t *analyser )
 {
@@ -249,6 +249,7 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 				break;
 			}
 
+            RAM_COUNTER++;
 			RAM_beg = RAM_COUNTER;
 			RAM_end = RAM_COUNTER;
 
@@ -291,6 +292,8 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 			}
 
 			fprintf( dest, "ret\n" );
+            
+            RAM_COUNTER--;
 
 			break;
 		}

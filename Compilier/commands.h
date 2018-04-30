@@ -107,7 +107,7 @@ DEF_CMD( LABEL, label, 13, ,  0;
 
 					strcpy( newlabel -> name, label );
 					newlabel -> pos =
-						( int )exe_cur - ( int )( Compilier -> exe );
+						( long )exe_cur - ( long )( Compilier -> exe );
 
                     newlabel -> elf_offs = elf_cur;
 
@@ -216,10 +216,10 @@ DEF_CMD( CALL, call, 21,{
             5,
 
 			{
-				size_t ret = ( size_t )(( CPU ) -> exe_cur) - ( size_t )(( CPU ) -> exe ) + sizeof( size_t );
+				int ret = ( long )(( CPU ) -> exe_cur) - ( long )(( CPU ) -> exe ) + 2 * sizeof( int );
 				Push( rets, &ret );
 				size_t tmp = 0;
-				from_exe( &tmp, size_t );
+				from_exe( &tmp, int );
                 CPU -> exe_cur += 4;
 				( CPU ) -> exe_cur = ( CPU ) -> exe + tmp;
 			});
@@ -380,7 +380,7 @@ do							\
 {							\
 	int reg_num = 0;				\
 	from_exe( &reg_num, int );			\
-	reg = ( ( CPU ) -> registers )[ reg_num - 1 ];	\
+	reg = ( ( CPU ) -> registers )[ reg_num ];	\
 } while( 0 )
 
 #define REG_write( arg )				\
@@ -388,7 +388,7 @@ do							\
 {							\
 	int reg_num = 0;				\
 	from_exe( &reg_num, int );			\
-	( ( CPU ) -> registers )[ reg_num - 1 ] = arg;	\
+	( ( CPU ) -> registers )[ reg_num ] = arg;	\
 } while( 0 )
 
 #define binary_cmd( operator )				\
