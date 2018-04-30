@@ -141,7 +141,7 @@ DEF_CMD( JE, je, 15,    {
 
 			sizeof( int ) + 2 * sizeof( int ),
 			
-            2,
+            7,
 
 			{
 				JmpIf( == );
@@ -153,7 +153,7 @@ DEF_CMD( JNE, jne, 16,  {
 
 			sizeof( int ) + 2 * sizeof( int ),
 			
-            2,
+            7,
 
 			{
 				JmpIf( != );
@@ -165,7 +165,7 @@ DEF_CMD( JA, ja, 17,    {
 
 			sizeof( int ) + 2 * sizeof( int ),
 			
-            2,
+            7,
 
 			{
 				JmpIf( > );
@@ -177,7 +177,7 @@ DEF_CMD( JAE, jae, 18,  {
 
 			sizeof( int ) + 2 * sizeof( int ),
 			
-            2,
+            7,
 
 			{
 				JmpIf( >= );
@@ -189,7 +189,7 @@ DEF_CMD( JB, jb, 19,    {
 
 			sizeof( int ) + 2 * sizeof( int ),
 			
-            2,
+            7,
 
 			{
 				JmpIf( < );
@@ -201,7 +201,7 @@ DEF_CMD( JBE, jbe, 20,  {
 
 			sizeof( int ) + 2 * sizeof( int ),
 			
-            2,
+            7,
 
 			{
 				JmpIf( <= );
@@ -213,7 +213,7 @@ DEF_CMD( CALL, call, 21,{
 
 			sizeof( int ) + 2 * sizeof( int ),
 			
-            2,
+            5,
 
 			{
 				size_t ret = ( size_t )(( CPU ) -> exe_cur) - ( size_t )(( CPU ) -> exe ) + sizeof( size_t );
@@ -238,7 +238,7 @@ DEF_CMD( SIN, sin, 25, { to_exe( &CMD_SIN, int ); }, sizeof( int ), 0, unary_cmd
 DEF_CMD( COS, cos, 26, { to_exe( &CMD_COS, int ); }, sizeof( int ), 0, unary_cmd( cos ) );
 DEF_CMD( TG, tan, 27, { to_exe( &CMD_TG, int ); }, sizeof( int ), 0, unary_cmd( tan ) );
 DEF_CMD( CAT, cat, 28, { to_exe( &CMD_CAT, int ); }, sizeof( int ), 0, DrawCat(); );
-DEF_CMD( END, end, 29, { to_exe( &CMD_END, int ); }, sizeof( int ), 12, return 0 );
+DEF_CMD( END, end, 29, { to_exe( &CMD_END, int ); }, sizeof( int ), 10, return 0 );
 #endif /*DEF_CMD*/
 
 #ifndef _COMMANDS_H_
