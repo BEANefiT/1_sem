@@ -146,7 +146,7 @@ DEF_CMD( ADD, add, 8,  { to_exe( &CMD_ADD, int ); }, sizeof( int ), 6, binary_cm
 DEF_CMD( MUL, mul, 9,  { to_exe( &CMD_MUL, int ); }, sizeof( int ), 6, binary_cmd( * ) );
 DEF_CMD( DIV, div, 10, { to_exe( &CMD_DIV, int ); }, sizeof( int ), 6, binary_cmd( / ) );
 DEF_CMD( SUB, sub, 11, { to_exe( &CMD_SUB, int ); }, sizeof( int ), 6, binary_cmd( - ) );
-DEF_CMD( OUT, out, 12, { to_exe( &CMD_OUT, int ); }, sizeof( int ), 72, {
+DEF_CMD( OUT, out, 12, { to_exe( &CMD_OUT, int ); }, sizeof( int ), 74, {
 									int/*double*/ value = 0;
 									Pop( values, &value );
 									printf( "%d\n", value );
