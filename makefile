@@ -1,5 +1,5 @@
 CC=gcc
-TARGETS=asm_compiler compiler cpu akinator diff dump exe dmp asm log.txt
+TARGETS=asm_compiler compiler cpu akinator diff dump dmp asm log.txt
 
 all: compiler
 

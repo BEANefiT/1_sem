@@ -114,6 +114,7 @@ int compile( struct Compilier_structure *Compilier )
 			free( str );
 		}
 		Compilier -> exe_sz = ( size_t ) exe_cur - ( size_t )( Compilier -> exe );
+
 		return 0;
 	}
 }

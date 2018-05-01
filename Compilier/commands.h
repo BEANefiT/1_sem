@@ -21,14 +21,40 @@ DEF_CMD( PUSH, push, 1, {
 
       2 * sizeof( int ),
 
-      1;{
+      0;{
 				int push_type = 0;
 				void *arg = calloc( 1, sizeof( int ) );
 				push_type();
-				free( arg );
-				if( push_type == 0 )
-					elf_cur += 5;
-      			},
+                switch (push_type)
+                {
+                    case 0:
+                    {
+                        elf_cur += 6;
+                        break;
+                    }
+
+                    case 1:
+                    {
+                        elf_cur += 1;
+                        break;
+                    }
+
+                    case 2:
+                    {
+                        elf_cur += 14;
+                        break;
+                    }
+
+                    case 3:
+                    {
+                        elf_cur += 21;
+                        break;
+                    }
+                }
+				
+                free( arg );
+        },
+
 
 			{
 				int/*double*/ value = 0;
@@ -62,7 +88,38 @@ DEF_CMD( POPR, pop, 5, {
 
 			2 * sizeof( int ),
             
-            1,
+            0;{
+				int push_type = 0;
+				void *arg = calloc( 1, sizeof( int ) );
+				push_type();
+                switch (push_type)
+                {
+                    case 0:
+                    {
+                        break;
+                    }
+
+                    case 1:
+                    {
+                        elf_cur += 1;
+                        break;
+                    }
+
+                    case 2:
+                    {
+                        elf_cur += 14;
+                        break;
+                    }
+
+                    case 3:
+                    {
+                        elf_cur += 22;
+                        break;
+                    }
+                }
+				
+                free( arg );
+              },
 			
 			{
 				int/*double*/ value = 0;
@@ -217,6 +274,7 @@ DEF_CMD( CALL, call, 21,{
 
 			{
 				int ret = ( long )(( CPU ) -> exe_cur) - ( long )(( CPU ) -> exe ) + 2 * sizeof( int );
+                Push( values, &ret);
 				Push( rets, &ret );
 				size_t tmp = 0;
 				from_exe( &tmp, int );
@@ -225,6 +283,7 @@ DEF_CMD( CALL, call, 21,{
 			});
 DEF_CMD( RET, ret, 22, { to_exe( &CMD_RET, int ); }, sizeof( int ), 1, {
 									size_t ret = 0;
+                                    Pop( values, &ret );
 									Pop( rets, &ret );
 									( CPU ) -> exe_cur = ( CPU ) -> exe + ret;
 								    });
@@ -238,7 +297,7 @@ DEF_CMD( SIN, sin, 25, { to_exe( &CMD_SIN, int ); }, sizeof( int ), 0, unary_cmd
 DEF_CMD( COS, cos, 26, { to_exe( &CMD_COS, int ); }, sizeof( int ), 0, unary_cmd( cos ) );
 DEF_CMD( TG, tan, 27, { to_exe( &CMD_TG, int ); }, sizeof( int ), 0, unary_cmd( tan ) );
 DEF_CMD( CAT, cat, 28, { to_exe( &CMD_CAT, int ); }, sizeof( int ), 0, DrawCat(); );
-DEF_CMD( END, end, 29, { to_exe( &CMD_END, int ); }, sizeof( int ), 10, return 0 );
+DEF_CMD( END, end, 29, { to_exe( &CMD_END, int ); }, sizeof( int ), 17, return 0 );
 #endif /*DEF_CMD*/
 
 #ifndef _COMMANDS_H_

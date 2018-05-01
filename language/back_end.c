@@ -231,6 +231,8 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 
 			if( func -> mode == call )
 			{
+                fprintf( dest, "push bx\n");
+
 				for( int i = 0; i < func -> param_count; i++ )
 				{
 					struct lex_t *param = func -> params_arr[ i ];
@@ -246,14 +248,17 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 
 				fprintf( dest, "call %s\n", lexem -> value );
 
+                fprintf( dest, "pop bx\n");
+
 				break;
 			}
 
-            RAM_COUNTER++;
 			RAM_beg = RAM_COUNTER;
 			RAM_end = RAM_COUNTER;
 
 			fprintf( dest, "label %s\n", func -> name );
+
+            fprintf( dest, "pop bx\n");
 
 			for( int i = func -> param_count - 1; i >= 0; i-- )
 			{
@@ -291,10 +296,9 @@ int back_node( struct analyser_t *analyser, struct tree_node_t *node, FILE *dest
 				back_node( analyser, L( node ), dest, normal, &RAM_beg, &RAM_end );
 			}
 
+            fprintf( dest, "push bx\n");
 			fprintf( dest, "ret\n" );
             
-            RAM_COUNTER--;
-
 			break;
 		}
 
